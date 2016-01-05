@@ -1,0 +1,7 @@
+<library path="lib/libprolog_server">
+  <class name="prolog_server/ServerNode" type="nodewrap::Nodelet<semantic_map::prolog_server::ServerNode>" base_class_type="nodelet::Nodelet">
+    <description>
+      Prolog server for the semantic map framework.
+    </description>
+  </class>
+</library>

@@ -1,0 +1,18 @@
+<package>
+  <name>prolog</name>
+  <version>0.0.1</version>
+  <description>
+    Prolog backend library for the semantic map framework.
+  </description>
+  <maintainer email="ralf.kaestner@gmail.com">Ralf Kaestner</maintainer>
+
+  <license>LGPL</license>
+
+  <author>Ralf Kaestner</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+
+  <run_depend>roscpp</run_depend>
+</package>
