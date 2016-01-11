@@ -1,9 +1,0 @@
-byte MODE_ALL_SOLUTIONS=0       # generate all solutation immediately
-byte MODE_INCREMENTAL=1         # generate single solutions incrementally
-
-byte mode                       # query mode as defined above
-string id                       # query identifier
-string query                    # query in JSON format
----
-bool ok                         # true if query succeeded
-string message                  # query result message

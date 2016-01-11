@@ -4,16 +4,22 @@ project(prolog_client)
 find_package(
   catkin
   REQUIRED
-    prolog
+    prolog_common
     prolog_msgs
+    prolog_serialization
     roscpp
     roscpp_nodewrap
 )
 
 catkin_package(
+  INCLUDE_DIRS
+    include
+  LIBRARIES
+    prolog_client
   DEPENDS
-    prolog
+    prolog_common
     prolog_msgs
+    prolog_serialization
     roscpp
     roscpp_nodewrap
 )
@@ -25,10 +31,25 @@ include_directories(
 
 add_library(
   prolog_client
-    src/ClientNode.cpp
+    src/Client.cpp
+    src/InteractiveClient.cpp
+    src/Query.cpp
+    src/ServiceClient.cpp
+    src/Solutions.cpp
 )
 
 target_link_libraries(
   prolog_client
+    ${catkin_LIBRARIES}
+)
+
+add_executable(
+  interactive_client_node
+    src/interactive_client_node.cpp
+)
+
+target_link_libraries(
+  interactive_client_node
+    prolog_client
     ${catkin_LIBRARIES}
 )

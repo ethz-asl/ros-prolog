@@ -20,71 +20,143 @@
   * \brief Header file providing the Query class interface
   */
 
-#ifndef SEMANTIC_MAP_PROLOG_QUERY_H
-#define SEMANTIC_MAP_PROLOG_QUERY_H
+#ifndef ROS_PROLOG_QUERY_H
+#define ROS_PROLOG_QUERY_H
 
 #include <list>
-#include <string>
 
-namespace semantic_map {
-  namespace prolog {
-    /** \brief Prolog query implementation
+#include <boost/shared_ptr.hpp>
+
+#include <prolog_common/Bindings.h>
+#include <prolog_common/Term.h>
+
+#include <prolog_client/ServiceClient.h>
+
+namespace prolog {
+  namespace client {
+    class Solutions;
+    
+    /** \brief Prolog query
       */
     class Query {
     public:
+      /** \brief Definition of the Prolog query mode enumerable type
+        */
+      enum Mode {
+        BatchMode,
+        IncrementalMode
+      };
+      
+      /** \brief Definition of the Prolog query format enumerable type
+        */
+      enum Format {
+        PrologFormat,
+        JSONFormat
+      };
+    
       /** \brief Default constructor
         */
-      Query(const std::string& functor = std::string(), const
-        std::list<std::string>& arguments = std::list<std::string>());
+      Query();
+      
+      /** \brief Constructor (overloaded version taking a goal string)
+        */
+      Query(const std::string& goal, Format format = PrologFormat);
+      
+      /** \brief Constructor (overloaded version taking a Prolog goal term)
+        */
+      Query(const Term& goal);
       
       /** \brief Copy constructor
-        * 
-        * \param[in] src The source Prolog query which is being copied
-        *   to this Prolog query.
         */
       Query(const Query& src);
       
       /** \brief Destructor
         */
-      ~Query();
+      virtual ~Query();
       
-      /** \brief Retrieve the string representation of this query
+      /** \brief Retrieve the query identifier of this Prolog query
+        */
+      std::string getIdentifier() const;
+      
+      /** \brief Retrieve the goal of this Prolog query
         */ 
-      const std::string& getString() const;
-
+      std::string getGoal() const;
+      
+      /** \brief Retrieve the error message of this Prolog query
+        */ 
+      std::string getError() const;
+      
+      /** \brief Retrieve the format of this Prolog query
+        */ 
+      Format getFormat() const;
+      
+      /** \brief Retrieve all solutions of this Prolog query
+        */ 
+      Solutions getAllSolutions() const;
+      
+      /** \brief Retrieve the incremental solutions of this Prolog query
+        */ 
+      Solutions getIncrementalSolutions() const;
+      
+      /** \brief True, if this Prolog query is valid
+        */ 
+      bool isValid() const;
+    
       /** \brief True, if this Prolog query is empty
         */ 
       bool isEmpty() const;
       
-      /** \brief Write this Prolog query to an output stream
+      /** \brief True, if this Prolog query has at least one solution
         */ 
-      void write(std::ostream& stream) const;
+      bool hasSolution() const;
       
-      /** \brief Unary "or" operator
+      /** \brief Start this Prolog query
         */ 
-      Query& operator|=(const Query& query);
+      bool start(ServiceClient& client, Mode mode = BatchMode);
       
-      /** \brief Unary "and" operator
+      /** \brief Abort this Prolog query
         */ 
-      Query& operator&=(const Query& query);
+      bool abort();
       
-    private:
-      /** \brief The Prolog query's string representation
+      /** \brief Operator for retrieving the first solution of this
+        *   Prolog query
+        * 
+        * This operator implicity starts this query in incremental mode,
+        * requests a single solution, and then aborts it.
+        */ 
+      Bindings operator()(ServiceClient& client);
+      
+    protected:
+      friend class ServiceClient;
+      friend class Solutions;
+      
+      /** \brief Prolog client query (implementation)
         */
-      std::string string_;
+      class Impl {
+      public:
+        Impl();
+        virtual ~Impl();
+        
+        bool start(ServiceClient& client, Mode mode);
+        bool hasSolution();
+        bool nextSolution(Bindings& bindings);
+        bool allSolutions(std::list<Bindings>& bindings);
+        bool abort();
+      
+        std::string identifier_;          
+        std::string goal_;
+        std::string error_;
+        
+        Mode mode_;
+        Format format_;
+        
+        ServiceClient client_;
+      };
+    
+      /** \brief The Prolog query's implementation
+        */
+      boost::shared_ptr<Impl> impl_;
     };
-    
-    /** \brief Binary Prolog query "or" operator
-      */ 
-    Query operator|(const Query& lhs, const Query& rhs);
-    
-    /** \brief Binary Prolog query "and" operator
-      */ 
-    Query operator&(const Query& lhs, const Query& rhs);
-    
-    /** \brief Operator for writing a Prolog query to an output stream
-      */ 
-    std::ostream& operator<<(std::ostream& stream, const Query& query);
   };
 };
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,48 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+#include <prolog_common/Float.h>
+#include <prolog_common/Integer.h>
 
-#include "prolog_server/Server.h"
+#include "prolog_common/Number.h"
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
-  
-  nodewrap::Node<prolog::server::Server> node;
+namespace prolog {
 
-  ros::spin();
-    
-  return 0;
+/*****************************************************************************/
+/* Constructors and Destructor                                               */
+/*****************************************************************************/
+
+Number::Number() {
+}
+
+Number::Number(const Number& src) :
+  Term(src) {
+}
+
+Number::Number(const Term& src) :
+  Term(src) {
+  BOOST_ASSERT(boost::dynamic_pointer_cast<Impl>(impl_));
+}
+
+Number::~Number() {  
+}
+
+Number::Impl::Impl() {
+}
+
+Number::Impl::~Impl() {
+}
+
+/*****************************************************************************/
+/* Accessors                                                                 */
+/*****************************************************************************/
+
+bool Number::isFloat() const {
+  return boost::dynamic_pointer_cast<Float::Impl>(impl_).get();
+}
+
+bool Number::isInteger() const {
+  return boost::dynamic_pointer_cast<Integer::Impl>(impl_).get();
+}
+
 }

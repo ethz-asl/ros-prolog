@@ -2,7 +2,7 @@
   <name>prolog_client</name>
   <version>0.0.1</version>
   <description>
-    Prolog client for the semantic map framework.
+    Prolog client for ROS.
   </description>
   <maintainer email="ralf.kaestner@gmail.com">Ralf Kaestner</maintainer>
 
@@ -12,13 +12,19 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>prolog</build_depend>
+  <build_depend>prolog_common</build_depend>
   <build_depend>prolog_msgs</build_depend>
+  <build_depend>prolog_serialization</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>roscpp_nodewrap</build_depend>
 
-  <run_depend>prolog</run_depend>
+  <run_depend>prolog_common</run_depend>
   <run_depend>prolog_msgs</run_depend>
+  <run_depend>prolog_serialization</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>roscpp_nodewrap</run_depend>
+  
+  <export>
+    <nodelet plugin="${prefix}/nodelet_plugins.xml"/>
+  </export>
 </package>

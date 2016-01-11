@@ -1,0 +1,10 @@
+string id                       # query identifier
+---
+byte STATUS_OK = 0              # call succeeded
+byte STATUS_INVALID_ID = 1      # query identifier is invalid
+byte STATUS_NO_SOLUTIONS = 2    # query has no solutions
+byte STATUS_COMMAND_FAILED = 3  # command failed
+
+byte status                     # status as defined above
+string[] solutions              # solutions in JSON format if call succeeded
+string error                    # error message if command failed

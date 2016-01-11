@@ -1,0 +1,9 @@
+<library path="lib/libprolog_client">
+  <class name="prolog_client/InteractiveClient"
+         type="nodewrap::Nodelet<prolog_client::InteractiveClient>"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Interactive Prolog client for ROS.
+    </description>
+  </class>
+</library>

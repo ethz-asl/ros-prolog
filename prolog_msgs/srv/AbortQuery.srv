@@ -1,0 +1,6 @@
+string id                       # query identifier
+---
+byte STATUS_OK = 0              # call succeeded
+byte STATUS_INVALID_ID = 1      # query identifier is invalid
+
+byte status                     # status as defined above

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,60 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+/** \file Number.h
+  * \brief Header file providing the Number class interface
+  */
 
-#include "prolog_server/Server.h"
+#ifndef ROS_PROLOG_NUMBER_H
+#define ROS_PROLOG_NUMBER_H
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
+#include <prolog_common/Term.h>
+
+namespace prolog {
+  class Float;
+  class Integer;
   
-  nodewrap::Node<prolog::server::Server> node;
-
-  ros::spin();
+  /** \brief Prolog number
+    */
+  class Number :
+    public Term {
+  public:
+    /** \brief Constructor
+      */
+    Number();
+      
+    /** \brief Copy constructor
+      */
+    Number(const Number& src);
     
-  return 0;
-}
+    /** \brief Copy constructor (overloaded version taking a term)
+      */
+    Number(const Term& src);
+    
+    /** \brief Destructor
+      */
+    virtual ~Number();
+    
+    /** \brief True, if this Prolog number is a float
+      */
+    bool isFloat() const;
+    
+    /** \brief True, if this Prolog number is an integer
+      */
+    bool isInteger() const;
+    
+  protected:
+    friend class Term;
+    
+    /** \brief Prolog number (implementation)
+      */
+    class Impl :
+      public Term::Impl {
+    public:
+      Impl();
+      virtual ~Impl();
+    };
+  };
+};
+
+#endif

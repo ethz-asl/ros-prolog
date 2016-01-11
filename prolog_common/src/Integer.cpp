@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+#include "prolog_common/Integer.h"
 
-#include "prolog_server/Server.h"
+namespace prolog {
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
-  
-  nodewrap::Node<prolog::server::Server> node;
+/*****************************************************************************/
+/* Constructors and Destructor                                               */
+/*****************************************************************************/
 
-  ros::spin();
-    
-  return 0;
+Integer::Integer(int64_t value) {
+  impl_.reset(new Impl(value));
+}
+
+Integer::Integer(const Integer& src) :
+  Number(src) {
+}
+
+Integer::Integer(const Term& src) :
+  Number(src) {
+  BOOST_ASSERT(boost::dynamic_pointer_cast<Impl>(impl_));
+}
+
+Integer::~Integer() {  
+}
+
+Integer::Impl::Impl(int64_t value) :
+  value_(value) {
+}
+
+Integer::Impl::~Impl() {
+}
+
+/*****************************************************************************/
+/* Accessors                                                                 */
+/*****************************************************************************/
+
+int64_t Integer::getValue() const {
+  return boost::static_pointer_cast<Impl>(impl_)->value_;
+}
+
 }

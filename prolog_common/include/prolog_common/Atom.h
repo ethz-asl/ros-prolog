@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,55 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+/** \file Atom.h
+  * \brief Header file providing the Atom class interface
+  */
 
-#include "prolog_server/Server.h"
+#ifndef ROS_PROLOG_ATOM_H
+#define ROS_PROLOG_ATOM_H
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
-  
-  nodewrap::Node<prolog::server::Server> node;
+#include <prolog_common/Term.h>
 
-  ros::spin();
+namespace prolog {
+  /** \brief Prolog atom
+    */
+  class Atom :
+    public Term {
+  public:
+    /** \brief Constructor
+      */
+    Atom(const std::string& name);
+      
+    /** \brief Copy constructor
+      */
+    Atom(const Atom& src);
     
-  return 0;
-}
+    /** \brief Copy constructor (overloaded version taking a term)
+      */
+    Atom(const Term& src);
+    
+    /** \brief Destructor
+      */
+    virtual ~Atom();
+    
+    /** \brief Retrieve the name of this Prolog atom
+      */
+    std::string getName() const;
+    
+  protected:
+    friend class Term;
+    
+    /** \brief Prolog atom (implementation)
+      */
+    class Impl :
+      public Term::Impl {
+    public:
+      Impl(const std::string& name);
+      virtual ~Impl();
+      
+      std::string name_;
+    };
+  };
+};
+
+#endif

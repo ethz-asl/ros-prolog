@@ -1,9 +1,0 @@
-string id                       # query identifier
----
-byte STATUS_NO_SOLUTION = 0     # query has no solution
-byte STATUS_WRONG_ID = 1        # query identifier is invalid
-byte STATUS_QUERY_FAILED = 2    # query failed
-byte STATUS_OK = 3              # query succeeded
-
-byte status                     # query status as defined above
-string solution                 # query solution in JSON format

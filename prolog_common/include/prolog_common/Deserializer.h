@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,39 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+/** \file Deserializer.h
+  * \brief Header file providing the Deserializer class interface
+  */
 
-#include "prolog_server/Server.h"
+#ifndef ROS_PROLOG_DESERIALIZER_H
+#define ROS_PROLOG_DESERIALIZER_H
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
-  
-  nodewrap::Node<prolog::server::Server> node;
+#include <iostream>
 
-  ros::spin();
+#include <prolog_common/Bindings.h>
+#include <prolog_common/Term.h>
+
+namespace prolog {
+  /** \brief Abstract Prolog deserializer
+    */
+  class Deserializer {
+  public:
+    /** \brief Default constructor
+      */
+    Deserializer();
     
-  return 0;
-}
+    /** \brief Destructor
+      */
+    virtual ~Deserializer();
+    
+    /** \brief Deserialize some Prolog bindings (abstract declaration)
+      */
+    virtual Bindings deserializeBindings(std::istream& stream) const = 0;
+    
+    /** \brief Deserialize a Prolog term (abstract declaration)
+      */
+    virtual Term deserializeTerm(std::istream& stream) const = 0;
+  };
+};
+
+#endif

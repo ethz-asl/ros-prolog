@@ -10,9 +10,11 @@ find_package(
 
 add_service_files(
   FILES
-    Finish.srv
-    NextSolution.srv
-    Query.srv
+    AbortQuery.srv
+    GetAllSolutions.srv
+    GetNextSolution.srv
+    HasSolution.srv
+    StartQuery.srv
 )
 
 generate_messages(

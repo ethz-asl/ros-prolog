@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+#include "prolog_common/Serializer.h"
 
-#include "prolog_server/Server.h"
+namespace prolog {
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
-  
-  nodewrap::Node<prolog::server::Server> node;
+/*****************************************************************************/
+/* Constructors and Destructor                                               */
+/*****************************************************************************/
 
-  ros::spin();
-    
-  return 0;
+Serializer::Serializer() {
+}
+
+Serializer::~Serializer() {  
+}
+
 }

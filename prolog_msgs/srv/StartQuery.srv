@@ -1,0 +1,13 @@
+byte FORMAT_PROLOG=0            # query goal is in Prolog format
+byte FORMAT_JSON=1              # query goal is in JSON format
+
+byte MODE_BATCH=0               # generate all solutions immediately
+byte MODE_INCREMENTAL=1         # generate single solutions incrementally
+
+byte format                     # query goal format as defined above
+byte mode                       # query mode as defined above
+string goal                     # query goal in the specified format
+---
+bool ok                         # true if call succeeded
+string id                       # query identifier if call succeeded
+string error                    # error message if call did not succeed

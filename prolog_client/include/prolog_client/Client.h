@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,41 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+/** \file Client.h
+  * \brief Header file providing the example Client class interface
+  */
 
-#include "prolog_server/Server.h"
+#ifndef ROS_PROLOG_CLIENT_H
+#define ROS_PROLOG_CLIENT_H
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
-  
-  nodewrap::Node<prolog::server::Server> node;
+#include <roscpp_nodewrap/NodeImpl.h>
+#include <roscpp_nodewrap/Nodelet.h>
 
-  ros::spin();
+#include <prolog_client/ServiceClient.h>
+
+namespace prolog {
+  namespace client {
+    /** \brief Prolog client implementation
+      */  
+    class Client :
+      public nodewrap::NodeImpl {
+    public:
+      /** \brief Default constructor
+        */
+      Client();
+      
+      /** \brief Destructor
+        */
+      virtual ~Client();
     
-  return 0;
-}
+    protected:
+      /** \brief Create a Prolog service client
+        */
+      ServiceClient prologServiceClient(const std::string& name, const
+        std::string& defaultServiceNamespace, bool defaultPersistent =
+        false);
+    };
+  };
+};
+
+#endif

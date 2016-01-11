@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014 by Ralf Kaestner                                        *
+ * Copyright (C) 2016 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,16 +16,56 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <roscpp_nodewrap/Node.h>
+/** \file Integer.h
+  * \brief Header file providing the Integer class interface
+  */
 
-#include "prolog_server/Server.h"
+#ifndef ROS_PROLOG_INTEGER_H
+#define ROS_PROLOG_INTEGER_H
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "prolog_server");
-  
-  nodewrap::Node<prolog::server::Server> node;
+#include <prolog_common/Number.h>
 
-  ros::spin();
+namespace prolog {
+  /** \brief Prolog integer
+    */
+  class Integer :
+    public Number {
+  public:
+    /** \brief Constructor
+      */
+    Integer(int64_t value = 0);
+      
+    /** \brief Copy constructor
+      */
+    Integer(const Integer& src);
     
-  return 0;
-}
+    /** \brief Copy constructor (overloaded version taking a term)
+      */
+    Integer(const Term& src);
+    
+    /** \brief Destructor
+      */
+    virtual ~Integer();
+    
+    /** \brief Retrieve the value of this Prolog integer
+      */
+    int64_t getValue() const;
+    
+  protected:
+    friend class Number;
+    friend class Term;
+    
+    /** \brief Prolog integer (implementation)
+      */
+    class Impl :
+      public Number::Impl {
+    public:
+      Impl(int64_t value);
+      virtual ~Impl();
+      
+      int64_t value_;
+    };
+  };
+};
+
+#endif
