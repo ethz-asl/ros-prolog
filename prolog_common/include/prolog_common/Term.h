@@ -23,8 +23,10 @@
 #ifndef ROS_PROLOG_TERM_H
 #define ROS_PROLOG_TERM_H
 
+#include <initializer_list>
 #include <list>
 #include <string>
+#include <vector>
 
 #include <boost/shared_ptr.hpp>
 
@@ -46,12 +48,22 @@ namespace prolog {
     Term();
       
     /** \brief Constructor (overloaded version for constructing a
-      *   Prolog atom or variable)
+      *   Prolog atom or variable by character array name)
+      */
+    Term(const char* name);
+    
+    /** \brief Constructor (overloaded version for constructing a
+      *   Prolog atom or variable by string name)
       */
     Term(const std::string& name);
     
     /** \brief Constructor (overloaded version for constructing a
-      *   Prolog integer)
+      *   Prolog integer from a 32-bit integer)
+      */
+    Term(int value);
+    
+    /** \brief Constructor (overloaded version for constructing a
+      *   Prolog integer from a 64-bit integer)
       */
     Term(int64_t value);
     
@@ -61,14 +73,27 @@ namespace prolog {
     Term(double value);
     
     /** \brief Constructor (overloaded version for constructing a
-      *   Prolog list)
+      *   Prolog list from a list of element terms)
       */
     Term(const std::list<Term>& elements);
     
     /** \brief Constructor (overloaded version for constructing a
-      *   Prolog compound term)
+      *   Prolog list from an initializer list of element terms)
       */
-    Term(const std::string& functor, const std::list<Term>& arguments);
+    Term(const std::initializer_list<Term>& elements);
+    
+    /** \brief Constructor (overloaded version for constructing a
+      *   Prolog compound term from a functor and a vector of argument
+      *   terms)
+      */
+    Term(const std::string& functor, const std::vector<Term>& arguments);
+    
+    /** \brief Constructor (overloaded version for constructing a
+      *   Prolog compound term from a functor and an initializer list
+      *   of a argument terms)
+      */
+    Term(const std::string& functor, const std::initializer_list<Term>&
+      arguments);
     
     /** \brief Copy constructor
       */
@@ -98,7 +123,7 @@ namespace prolog {
       */
     bool isVariable() const;
     
-    /** \brief True, if the type of this Prolog term is valid
+    /** \brief True, if this Prolog term is valid
       */
     bool isValid() const;
     

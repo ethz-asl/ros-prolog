@@ -27,13 +27,17 @@ add_library(
   prolog_common
     src/Atom.cpp
     src/Bindings.cpp
+    src/Clause.cpp
     src/Compound.cpp
-    src/Deserializer.cpp
+    src/Fact.cpp
     src/Float.cpp
     src/Integer.cpp
     src/List.cpp
     src/Number.cpp
-    src/Serializer.cpp
+    src/Program.cpp
+    src/Query.cpp
+    src/Rule.cpp
+    src/Solution.cpp
     src/Term.cpp
     src/Variable.cpp
 )

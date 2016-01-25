@@ -16,6 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
+#include <boost/algorithm/string.hpp>
+
 #include <json/reader.h>
 #include <json/value.h>
 
@@ -52,6 +54,24 @@ Bindings JSONDeserializer::deserializeBindings(std::istream& stream) const {
   return valueToBindings(value);
 }
 
+Clause JSONDeserializer::deserializeClause(std::istream& stream) const {
+  Json::Value value = deserializeValue(stream);
+  
+  return valueToClause(value);
+}
+
+Program JSONDeserializer::deserializeProgram(std::istream& stream) const {
+  Json::Value value = deserializeValue(stream);
+  
+  return valueToProgram(value);
+}
+
+Query JSONDeserializer::deserializeQuery(std::istream& stream) const {
+  Json::Value value = deserializeValue(stream);
+  
+  return valueToQuery(value);
+}
+
 Term JSONDeserializer::deserializeTerm(std::istream& stream) const {
   Json::Value value = deserializeValue(stream);
   
@@ -68,12 +88,32 @@ Json::Value JSONDeserializer::deserializeValue(std::istream& stream) const {
       
     return root;
   }
-  else
-    throw ParseError(reader.getFormattedErrorMessages());
+  else {
+    std::string messages = reader.getFormattedErrorMessages();
+    std::string description;
+    std::vector<std::string> lines;
+    
+    boost::split(lines, messages, boost::is_any_of("\n"));
+    
+    for (size_t index = 0; index < lines.size(); ++index) {
+      if (!lines[index].empty() && (lines[index][0] == '*'))
+        lines[index][0] = ' ';
+      
+      boost::algorithm::trim(lines[index]);
+      
+      if (!lines[index].empty()) {
+        if (!description.empty())
+          description += ": ";
+        description += lines[index];
+      }
+    }
+    
+    throw ParseError(description);
+  }
 }
 
 Bindings JSONDeserializer::valueToBindings(const Json::Value& value) const {
-  if (!value.isObject()) {
+  if (value.isObject()) {
     Bindings bindings;
     
     Json::Value::Members names = value.getMemberNames();
@@ -81,6 +121,102 @@ Bindings JSONDeserializer::valueToBindings(const Json::Value& value) const {
     for (Json::Value::Members::iterator it = names.begin();
         it != names.end(); ++it)
       bindings.addTerm(*it, valueToTerm(value[*it]));
+    
+    return bindings;
+  }
+  else
+    throw ConversionError("Invalid value type.");
+}
+
+Program JSONDeserializer::valueToProgram(const Json::Value& value) const {
+  if (value.isArray()) {
+    std::list<Clause> clauses;
+    
+    for (Json::Value::iterator it = value.begin(); it != value.end(); ++it)
+      clauses.push_back(valueToClause(*it));
+    
+    return Program(clauses);
+  }
+  else
+    throw ConversionError("Invalid value type.");
+}
+
+Query JSONDeserializer::valueToQuery(const Json::Value& value) const {
+  if (value.isObject()) {
+    std::string module;
+    std::vector<Term> arguments;
+    
+    if ((value.size() < 2) || (value.size() > 3))
+      throw ParseError("Invalid number of object members.");
+      
+    if (value.isMember("module")) {
+      if (value["module"].isString())
+        module = value["module"].asString();
+      else
+        throw ParseError("Member [module] has invalid value type.");
+    }
+    
+    if (!value.isMember("predicate"))
+      throw ParseError("Missing object member named [predicate].");
+    if (!value["predicate"].isString())
+      throw ParseError("Member [predicate] has invalid value type.");
+    
+    if (value.isMember("arguments")) {
+      if (value["arguments"].isArray()) {
+        Json::Value argumentsValue = value["arguments"];
+    
+        for (Json::Value::iterator it = argumentsValue.begin();
+            it != argumentsValue.end(); ++it)
+          arguments.push_back(valueToTerm(*it));    
+      }
+      else
+        throw ParseError("Member [arguments] has invalid value type.");
+    }
+    
+    return Query(module, value["predicate"].asString(), arguments);
+  }
+  else
+    throw ConversionError("Invalid value type.");
+}
+
+Clause JSONDeserializer::valueToClause(const Json::Value& value) const {
+  if (value.isObject()) {
+    std::vector<Term> arguments;
+    std::list<Term> goals;
+    
+    if ((value.size() < 1) || (value.size() > 3))
+      throw ParseError("Invalid number of object members.");
+      
+    if (!value.isMember("predicate"))
+      throw ParseError("Missing object member named [predicate].");
+    if (!value["predicate"].isString())
+      throw ParseError("Member [predicate] has invalid value type.");
+    
+    if (value.isMember("arguments")) {
+      if (value["arguments"].isArray()) {
+        Json::Value argumentsValue = value["arguments"];
+    
+        for (Json::Value::iterator it = argumentsValue.begin();
+            it != argumentsValue.end(); ++it)
+          arguments.push_back(valueToTerm(*it));    
+      }
+      else
+        throw ParseError("Member [arguments] has invalid value type.");
+    }
+    
+    if (value.isMember("goals")) {
+      if (value["goals"].isArray()) {
+        Json::Value goalsValue = value["goals"];
+    
+        for (Json::Value::iterator it = goalsValue.begin();
+            it != goalsValue.end(); ++it)
+          goals.push_back(valueToTerm(*it));    
+      }
+      else
+        throw ParseError("Member [goals] has invalid value type.");
+    }
+    
+    return Clause(value["predicate"].asString(), arguments, goals);
   }
   else
     throw ConversionError("Invalid value type.");
@@ -88,7 +224,7 @@ Bindings JSONDeserializer::valueToBindings(const Json::Value& value) const {
 
 Term JSONDeserializer::valueToTerm(const Json::Value& value) const {
   if (value.isObject()) {
-    std::list<Term> arguments;
+    std::vector<Term> arguments;
     
     if (value.size() != 2)
       throw ParseError("Invalid number of object members.");

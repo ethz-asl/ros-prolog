@@ -16,12 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-/** \file Solutions.h
-  * \brief Header file providing the Solutions class interface
+/** \file QueryProxy.h
+  * \brief Header file providing the QueryProxy class interface
   */
 
-#ifndef ROS_PROLOG_SOLUTIONS_H
-#define ROS_PROLOG_SOLUTIONS_H
+#ifndef ROS_PROLOG_CLIENT_QUERY_PROXY_H
+#define ROS_PROLOG_CLIENT_QUERY_PROXY_H
 
 #include <list>
 
@@ -30,34 +30,36 @@
 
 #include <ros/exception.h>
 
-#include <prolog_common/Bindings.h>
+#include <prolog_common/Solution.h>
 
 #include <prolog_client/Query.h>
 
 namespace prolog {
   namespace client {
-    /** \brief Prolog solutions
+    /** \brief Prolog query proxy
       */
-    class Solutions {
+    class QueryProxy {
     protected:
       /** \brief Forward declartion of the implementation
         */
       class Impl;
       
     public:
-      /** \brief Exception thrown in case of an iterator increment on
-        *   an end iterator
+      /** \brief Exception thrown in case of an attempted invalid operation
         */ 
-      class StopIteration :
+      class InvalidOperation :
         public ros::Exception {
       public:
-        StopIteration();
+        InvalidOperation(const std::string& description);
       };
       
-      /** \brief Prolog solutions iterator
+      /** \brief Prolog query proxy iterator
+        * 
+        * This iterator can be used to iterate the solutions of the
+        * Prolog query linked to a query proxy.
         */
       class Iterator :
-        public boost::iterator_facade<Iterator, Bindings,
+        public boost::iterator_facade<Iterator, Solution,
           boost::single_pass_traversal_tag> {
       public:
         /** \brief Default constructor
@@ -75,7 +77,7 @@ namespace prolog {
       private:
         friend class boost::iterator_core_access;
         
-        friend class Solutions;
+        friend class QueryProxy;
         
         /** \brief True, if this iterator equals another iterator
           */
@@ -87,63 +89,66 @@ namespace prolog {
         
         /** \brief Dereference this iterator
           */
-        Bindings& dereference() const;
+        Solution& dereference() const;
         
-        /** \brief The Prolog solutions this iterator operates on
+        /** \brief The Prolog query proxy this iterator operates on
           */
-        boost::shared_ptr<Impl> solutions_;
+        boost::shared_ptr<Impl> proxy_;
         
-        /** \brief The bindings list iterator of this Prolog solutions
+        /** \brief The solution list iterator of this Prolog solutions
           *   iterator
           */
-        std::list<Bindings>::iterator iterator_;
+        std::list<Solution>::iterator iterator_;
       };
       
       /** \brief Default constructor
         */
-      Solutions();
+      QueryProxy();
       
       /** \brief Copy constructor
         */
-      Solutions(const Solutions& src);
+      QueryProxy(const QueryProxy& src);
       
       /** \brief Destructor
         */
-      virtual ~Solutions();
+      virtual ~QueryProxy();
       
-      /** \brief True, if these Prolog solutions are empty
+      /** \brief True, if this Prolog query proxy provides at least
+        *   one solution
         */ 
-      bool areEmpty() const;
+      bool hasSolution() const;
       
-      /** \brief Retrieve the begin iterator of these Prolog solutions
+      /** \brief True, if this Prolog query proxy is valid
+        */ 
+      bool isValid() const;
+      
+      /** \brief Retrieve the solution begin iterator provided by this
+        *   Prolog query proxy
         */ 
       Iterator begin();
       
-      /** \brief Retrieve the end iterator of these Prolog solutions
-        */
-      Iterator end();
-      
-      /** \brief Clear these Prolog solutions
+      /** \brief Retrieve the solution end iterator provided by this
+        *   Prolog query proxy
         */ 
-      void clear();
+      Iterator end();
       
     protected:
       friend class Iterator;
       friend class Query;
       
-      /** \brief Prolog solutions (implementation)
+      /** \brief Prolog query proxy (implementation)
         */
       class Impl {
       public:
-        Impl();
+        Impl(const Query& query);
         virtual ~Impl();
         
-        std::list<Bindings> bindings_;
+        Query query_;
         
-        boost::shared_ptr<Query::Impl> query_;
+        std::list<Solution> solutions_;
       };
       
-      /** \brief The Prolog solutions' implementation
+      /** \brief The Prolog query proxy's implementation
         */
       boost::shared_ptr<Impl> impl_;
     };

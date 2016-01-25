@@ -60,19 +60,19 @@ bool ServiceClient::isValid() const {
 }
 
 bool ServiceClient::Impl::exists() const {
-  return startQueryClient_.exists() &&
+  return openQueryClient_.exists() &&
     getAllSolutionsClient_.exists() &&
     getNextSolutionClient_.exists() &&
     hasSolutionClient_.exists() &&
-    abortQueryClient_.exists();
+    closeQueryClient_.exists();
 }
 
 bool ServiceClient::Impl::isValid() const {
-  return startQueryClient_ &&
+  return openQueryClient_ &&
     getAllSolutionsClient_ &&
     getNextSolutionClient_ &&
     hasSolutionClient_ &&
-    abortQueryClient_;
+    closeQueryClient_;
 }
 
 /*****************************************************************************/
@@ -81,11 +81,11 @@ bool ServiceClient::Impl::isValid() const {
 
 bool ServiceClient::waitForExistence(const ros::Duration& timeout) {
   if (impl_)
-    return impl_->startQueryClient_.waitForExistence(timeout) &&
+    return impl_->openQueryClient_.waitForExistence(timeout) &&
       impl_->getAllSolutionsClient_.waitForExistence(timeout) &&
       impl_->getNextSolutionClient_.waitForExistence(timeout) &&
       impl_->hasSolutionClient_.waitForExistence(timeout) &&
-      impl_->abortQueryClient_.waitForExistence(timeout);
+      impl_->closeQueryClient_.waitForExistence(timeout);
   else
     return false;
 }
@@ -96,11 +96,11 @@ void ServiceClient::shutdown() {
 }
 
 void ServiceClient::Impl::shutdown() {
-  startQueryClient_.shutdown();
+  openQueryClient_.shutdown();
   getAllSolutionsClient_.shutdown();
   getNextSolutionClient_.shutdown();
   hasSolutionClient_.shutdown();
-  abortQueryClient_.shutdown();
+  closeQueryClient_.shutdown();
 }
 
 }}

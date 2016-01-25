@@ -35,13 +35,19 @@ namespace prolog {
 Term::Term() {
 }
 
+Term::Term(const char* name) :
+  Term(std::string(name)) {
+}
+
 Term::Term(const std::string& name) {
-  if (!name.empty()) {
-    if ((name[0] == toupper(name[0])) || (name[0] == '_'))
-      impl_.reset(new Variable::Impl(name));
-    else
-      impl_.reset(new Atom::Impl(name));
-  }
+  if (!name.empty() && ((name[0] == toupper(name[0])) || (name[0] == '_')))
+    impl_.reset(new Variable::Impl(name));
+  else
+    impl_.reset(new Atom::Impl(name));
+}
+
+Term::Term(int value) :
+  Term(static_cast<int64_t>(value)) {
 }
 
 Term::Term(int64_t value) :
@@ -56,7 +62,16 @@ Term::Term(const std::list<Term>& elements) :
   impl_(new List::Impl(elements)) {
 }
 
-Term::Term(const std::string& functor, const std::list<Term>& arguments) :
+Term::Term(const std::initializer_list<Term>& elements) :
+  impl_(new List::Impl(elements)) {
+}
+
+Term::Term(const std::string& functor, const std::vector<Term>& arguments) :
+  impl_(new Compound::Impl(functor, arguments)) {
+}
+
+Term::Term(const std::string& functor, const std::initializer_list<Term>&
+    arguments) :
   impl_(new Compound::Impl(functor, arguments)) {
 }
 

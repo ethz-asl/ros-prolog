@@ -1,0 +1,6 @@
+prolog:
+  global_stack: 256
+  local_stack: 256
+  trail_stack: 256
+  
+  num_engines: 4

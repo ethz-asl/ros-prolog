@@ -33,9 +33,9 @@ namespace prolog {
   class List :
     public Term {
   public:
-    /** \brief Constructor
+    /** \brief Default constructor
       */
-    List(const std::list<Term>& elements);
+    List(const std::list<Term>& elements = std::list<Term>());
       
     /** \brief Copy constructor
       */

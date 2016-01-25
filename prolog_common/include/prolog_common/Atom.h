@@ -31,7 +31,12 @@ namespace prolog {
   class Atom :
     public Term {
   public:
-    /** \brief Constructor
+    /** \brief Constructor (overloaded version taking a character
+      *   array name)
+      */
+    Atom(const char* name);
+    
+    /** \brief Constructor (overloaded version taking a string name)
       */
     Atom(const std::string& name);
       

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2016 by Ralf Kaestner                                        *
+ * Copyright (C) 2014 by Ralf Kaestner                                        *
  * ralf.kaestner@gmail.com                                                    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
@@ -16,18 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include "prolog_common/Deserializer.h"
+#include <gtest/gtest.h>
 
-namespace prolog {
-
-/*****************************************************************************/
-/* Constructors and Destructor                                               */
-/*****************************************************************************/
-
-Deserializer::Deserializer() {
-}
-
-Deserializer::~Deserializer() {  
-}
-
+int main(int argc, char **argv) {
+  testing::InitGoogleTest(&argc, argv);
+  srand((int)time(0));
+  
+  return RUN_ALL_TESTS();
 }

@@ -20,17 +20,20 @@
 
 #include <boost/lexical_cast.hpp>
 
-#include <prolog_msgs/AbortQuery.h>
+#include <prolog_msgs/CloseQuery.h>
 #include <prolog_msgs/GetAllSolutions.h>
 #include <prolog_msgs/GetNextSolution.h>
 #include <prolog_msgs/HasSolution.h>
-#include <prolog_msgs/StartQuery.h>
+#include <prolog_msgs/OpenQuery.h>
+
+#include <prolog_common/Bindings.h>
 
 #include <prolog_serialization/JSONDeserializer.h>
 #include <prolog_serialization/JSONSerializer.h>
 
+#include <prolog_client/QueryProxy.h>
+
 #include "prolog_client/Query.h"
-#include "prolog_client/Solutions.h"
 
 namespace prolog { namespace client {
 
@@ -38,23 +41,60 @@ namespace prolog { namespace client {
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
+Query::InvalidOperation::InvalidOperation(const std::string& description) :
+  ros::Exception("Invalid operation: "+description) {
+}
+
+Query::NoSuchService::NoSuchService(const std::string& service) :
+  ros::Exception("Failure to contact the Prolog server: Prolog service ["+
+    service+"] seems not to be advertised.") {
+}
+
+Query::ServiceCallFailed::ServiceCallFailed(const std::string& service) :
+  ros::Exception("Service call failed for Prolog service ["+service+"].") {
+}
+
+Query::InvalidIdentifier::InvalidIdentifier() :
+  ros::Exception("Prolog query identifier is empty: "
+    "Has this query been opened, yet?")  {
+}
+
+Query::InvalidIdentifier::InvalidIdentifier(const std::string& identifier) :
+  ros::Exception("Prolog query identifier ["+identifier+"] is invalid: "
+    "Another client may have interfered with this query.")  {
+}
+
+Query::QueryFailed::QueryFailed(const std::string& description) :
+  ros::Exception("Prolog query failed: "+description) {
+}
+
+Query::DeserializationFailed::DeserializationFailed(const std::string&
+    description) :
+  ros::Exception("Failure to deserialize Prolog solution: "+description) {
+}
+
+Query::UnknownResponse::UnknownResponse(int status) :
+  ros::Exception("Unknown status response from the Prolog server: "+
+    boost::lexical_cast<std::string>(status)) {
+}
+
 Query::Query() {
 }
 
-Query::Query(const std::string& goal, Format format) :
+Query::Query(const std::string& goal) :
   impl_(new Impl()) {
-  impl_->goal_ = goal;
-  impl_->format_ = format;
+  impl_->query_ = goal;
+  impl_->format_ = PrologFormat;
 }
 
-Query::Query(const Term& goal) :
+Query::Query(const prolog::Query& query) :
   impl_(new Impl()) {
   std::ostringstream stream;  
   serialization::JSONSerializer serializer;
   
-  serializer.serializeTerm(stream, goal);
+  serializer.serializeQuery(stream, query);
   
-  impl_->goal_ = stream.str();
+  impl_->query_ = stream.str();
   impl_->format_ = JSONFormat;
 }
 
@@ -71,6 +111,7 @@ Query::Impl::Impl() :
 }
 
 Query::Impl::~Impl() {
+  close();
 }
 
 /*****************************************************************************/
@@ -78,365 +119,313 @@ Query::Impl::~Impl() {
 /*****************************************************************************/
 
 std::string Query::getIdentifier() const {
-  if (impl_)
+  if (impl_.get())
     return impl_->identifier_;
   else
     return std::string();
 }
 
-std::string Query::getGoal() const {
-  if (impl_)
-    return impl_->goal_;
-  else
-    return std::string();
-}
-
-std::string Query::getError() const {
-  if (impl_)
-    return impl_->error_;
-  else
-    return std::string();
-}
-
 Query::Format Query::getFormat() const {
-  if (impl_)
+  if (impl_.get())
     return impl_->format_;
   else
     return PrologFormat;
 }
 
-Solutions Query::getAllSolutions() const {
-  Solutions solutions;
-  
-  if (impl_) {
-    solutions.impl_.reset(new Solutions::Impl());
-
-    impl_->allSolutions(solutions.impl_->bindings_);
-  }
-
-  return solutions;
+Solution Query::getNextSolution(bool close) const {
+  if (impl_.get())
+    return impl_->getNextSolution(close);
+  else
+    return Solution();
 }
 
-Solutions Query::getIncrementalSolutions() const {
-  Solutions solutions;
-  
-  if (impl_) {
-    solutions.impl_.reset(new Solutions::Impl());
-    solutions.impl_->query_ = impl_;
-  }
+std::list<Solution> Query::getAllSolutions() const {
+  if (impl_.get())
+    return impl_->getAllSolutions();
+  else
+    return std::list<Solution>();
+}
 
-  return solutions;
+QueryProxy Query::getProxy() const {
+  QueryProxy proxy;
+  
+  if (impl_.get())
+    proxy.impl_.reset(new QueryProxy::Impl(*this));
+
+  return proxy;
 }
 
 bool Query::isValid() const {
   return impl_.get();
 }
 
+bool Query::isOpen() const {
+  if (impl_.get())
+    return !impl_->identifier_.empty();
+  else
+    return false;
+}
+
 bool Query::isEmpty() const {
-  if (impl_)
-    return impl_->goal_.empty();
+  if (impl_.get())
+    return impl_->query_.empty();
   else
     return true;
 }
 
 bool Query::hasSolution() const {
-  if (impl_)
+  if (impl_.get())
     return impl_->hasSolution();
   else
     return false;
 }
 
-/*****************************************************************************/
-/* Methods                                                                   */
-/*****************************************************************************/
-
-bool Query::start(ServiceClient& client, Mode mode) {
-  if (impl_)
-    return impl_->start(client, mode);
-  else
-    return false;
-}
-
-bool Query::abort() {
-  if (impl_)
-    return impl_->abort();
-  else
-    return false;
-}
-
-bool Query::Impl::start(ServiceClient& client, Mode mode) {
-  error_.clear();
+Solution Query::Impl::getNextSolution(bool close) {
+  if (identifier_.empty())
+    throw InvalidIdentifier();
   
-  if (!identifier_.empty()) {
-    error_ = "Query conflict: Another client may have started this query.";
-    return false;
-  }
-  
-  if (goal_.empty()) {
-    error_ = "Query is empty.";
-    return false;
-  }
-  
-  if (!client.impl_ || !client.impl_->startQueryClient_.exists()) {
-    error_ = "Failure to contact the Prolog server.";
-    return false;
-  }
-    
-  prolog_msgs::StartQuery::Request request;
-  prolog_msgs::StartQuery::Response response;
-  
-  if (format_ == JSONFormat)
-    request.mode = prolog_msgs::StartQuery::Request::FORMAT_JSON;
-  else
-    request.mode = prolog_msgs::StartQuery::Request::FORMAT_PROLOG;
-  
-  if (mode == IncrementalMode)
-    request.mode = prolog_msgs::StartQuery::Request::MODE_INCREMENTAL;
-  else
-    prolog_msgs::StartQuery::Request::MODE_BATCH;
-  
-  request.goal = goal_;
-  
-  if (!client.impl_->startQueryClient_.call(request, response)) {
-    error_ = "Service call failed.";
-    return false;
-  }
-  
-  if (!response.ok) {
-    error_ = response.error;
-    return false;
-  }
-  
-  identifier_ = response.id;
-  client_ = client;
-  
-  return true;
-}
-
-bool Query::Impl::hasSolution() {
-  error_.clear();
-  
-  if (identifier_.empty()) {
-    error_ = "Query identifier is invalid: Has this query been started, yet?";
-    return false;
-  }
-  
-  if (!client_.impl_ || !client_.impl_->hasSolutionClient_.exists()) {
-    error_ = "Failure to contact the Prolog server.";
-    return false;
-  }
-    
-  prolog_msgs::HasSolution::Request request;
-  prolog_msgs::HasSolution::Response response;
-  
-  request.id = identifier_;
-  
-  if (!client_.impl_->hasSolutionClient_.call(request, response)) {
-    error_ = "Service call failed.";
-    return false;
-  }
-  
-  if (response.status != prolog_msgs::HasSolution::Response::STATUS_OK) {
-    if (response.status == prolog_msgs::HasSolution::Response::
-        STATUS_INVALID_ID)
-      error_ = "Query identifier is invalid: "
-        "Another client may have aborted this query.";
-    else if (response.status == prolog_msgs::HasSolution::Response::
-        STATUS_COMMAND_FAILED)
-      error_ = "Command failed: "+response.error;
-    else
-      error_ = "Unknown status response: "+boost::lexical_cast<std::string>(
-        response.status);
-      
-    return false;
-  }
-
-  return response.result;
-}
-
-bool Query::Impl::nextSolution(Bindings& bindings) {
-  error_.clear();
-  
-  if (identifier_.empty()) {
-    error_ = "Query identifier is invalid: Has this query been started, yet?";
-    return false;
-  }
-  
-  if (!client_.impl_ || !client_.impl_->getNextSolutionClient_.exists()) {
-    error_ = "Failure to contact the Prolog server.";
-    return false;
-  }
+  if (!client_.impl_->getNextSolutionClient_.exists())
+    throw NoSuchService(client_.impl_->getNextSolutionClient_.getService());
     
   prolog_msgs::GetNextSolution::Request request;
   prolog_msgs::GetNextSolution::Response response;
   
   request.id = identifier_;
+  request.close = close;
   
-  if (!client_.impl_->getNextSolutionClient_.call(request, response)) {
-    error_ = "Service call failed.";
-    return false;
-  }
+  if (!client_.impl_->getNextSolutionClient_.call(request, response))
+    throw ServiceCallFailed(client_.impl_->getNextSolutionClient_.
+      getService());
   
   if (response.status != prolog_msgs::GetNextSolution::Response::STATUS_OK) {
     if (response.status == prolog_msgs::GetNextSolution::Response::
         STATUS_INVALID_ID)
-      error_ = "Query identifier is invalid: "
-        "Another client may have aborted this query.";
+      throw InvalidIdentifier(request.id);
     else if (response.status == prolog_msgs::GetNextSolution::Response::
-        STATUS_NO_SOLUTIONS) {
-      error_ = "Query has no more solutions.";
-      
-      identifier_.clear();  
-      client_ = ServiceClient();
-    }
-    else if (response.status == prolog_msgs::GetNextSolution::Response::
-        STATUS_COMMAND_FAILED)
-      error_ = "Command failed: "+response.error;
-    else
-      error_ = "Unknown status response: "+boost::lexical_cast<std::string>(
-        response.status);
-      
-    return false;
+        STATUS_QUERY_FAILED)
+      throw QueryFailed(response.error);
+    else if (response.status != prolog_msgs::GetNextSolution::Response::
+        STATUS_NO_SOLUTIONS)
+      throw UnknownResponse(response.status);
   }
 
-  std::istringstream stream(response.solution);
-  serialization::JSONDeserializer deserializer;
-  
-  bindings.clear();
-  
-  try {
-    bindings = deserializer.deserializeBindings(stream);
-  }
-  catch (const ros::Exception& exception) {
-    error_ = std::string("Failure to deserialize solution: ")+
-      exception.what();
-    return false;
+  if (close) {
+    identifier_.clear();
+    client_ = ServiceClient();
   }
   
-  return true;
+  Solution solution;
+  
+  if (response.status != prolog_msgs::GetNextSolution::Response::
+      STATUS_NO_SOLUTIONS) {
+    std::istringstream stream(response.solution);
+    serialization::JSONDeserializer deserializer;
+    
+    try {
+      solution = deserializer.deserializeBindings(stream);
+    }
+    catch (const ros::Exception& exception) {
+      throw DeserializationFailed(exception.what());
+    }
+  }
+  
+  return solution;
 }
 
-bool Query::Impl::allSolutions(std::list<Bindings>& bindings) {
-  error_.clear();
+std::list<Solution> Query::Impl::getAllSolutions() {
+  if (identifier_.empty())
+    throw InvalidIdentifier();
   
-  if (identifier_.empty()) {
-    error_ = "Query identifier is invalid: Has this query been started, yet?";
-    return false;
-  }
-  
-  if (!client_.impl_ || !client_.impl_->getAllSolutionsClient_.exists()) {
-    error_ = "Failure to contact the Prolog server.";
-    return false;
-  }
+  if (!client_.impl_->getAllSolutionsClient_.exists())
+    throw NoSuchService(client_.impl_->getAllSolutionsClient_.getService());
     
   prolog_msgs::GetAllSolutions::Request request;
   prolog_msgs::GetAllSolutions::Response response;
   
   request.id = identifier_;
   
-  if (!client_.impl_->getAllSolutionsClient_.call(request, response)) {
-    error_ = "Service call failed.";
-    return false;
-  }
+  if (!client_.impl_->getAllSolutionsClient_.call(request, response))
+    throw ServiceCallFailed(client_.impl_->getAllSolutionsClient_.
+      getService());
   
   if (response.status != prolog_msgs::GetAllSolutions::Response::STATUS_OK) {
     if (response.status == prolog_msgs::GetAllSolutions::Response::
         STATUS_INVALID_ID)
-      error_ = "Query identifier is invalid: "
-        "Another client may have aborted this query.";
+      throw InvalidIdentifier(request.id);
     else if (response.status == prolog_msgs::GetAllSolutions::Response::
-        STATUS_NO_SOLUTIONS) {
-      error_ = "Query has no more solutions.";
-      
-      identifier_.clear();  
-      client_ = ServiceClient();
-    }
-    else if (response.status == prolog_msgs::GetAllSolutions::Response::
-        STATUS_COMMAND_FAILED)
-      error_ = "Command failed: "+response.error;
-    else
-      error_ = "Unknown status response: "+boost::lexical_cast<std::string>(
-        response.status);
-      
-    return false;
+        STATUS_QUERY_FAILED)
+      throw QueryFailed(response.error);
+    else if (response.status != prolog_msgs::GetAllSolutions::Response::
+        STATUS_NO_SOLUTIONS)
+      throw UnknownResponse(response.status);
   }
 
-  bindings.clear();
-  
-  for (size_t index = 0; index < response.solutions.size(); ++index) {
-    std::istringstream stream(response.solutions[index]);
-    serialization::JSONDeserializer deserializer;
-  
-    Bindings solution;
-    
-    try {
-      solution = deserializer.deserializeBindings(stream);
-    }
-    catch (const ros::Exception& exception) {
-      error_ = std::string("Failure to deserialize solution: ")+
-        exception.what();
-      return false;
-    }
-    
-    bindings.push_back(solution);
-  }
-  
-  return true;
-}
-
-bool Query::Impl::abort() {
-  error_.clear();
-  
-  if (identifier_.empty()) {
-    error_ = "Query identifier is invalid: Has this query been started, yet?";
-    return false;
-  }
-  
-  if (!client_.impl_ || !client_.impl_->abortQueryClient_.exists()) {
-    error_ = "Failure to contact the Prolog server.";
-    return false;
-  }
-    
-  prolog_msgs::AbortQuery::Request request;
-  prolog_msgs::AbortQuery::Response response;
-  
-  request.id = identifier_;
-  
-  if (!client_.impl_->abortQueryClient_.call(request, response)) {
-    error_ = "Service call failed.";
-    return false;
-  }
-  
-  if (response.status != prolog_msgs::AbortQuery::Response::STATUS_OK) {
-    if (response.status == prolog_msgs::AbortQuery::Response::
-        STATUS_INVALID_ID)
-      error_ = "Query identifier is invalid: "
-        "Another client may have aborted this query.";
-    else
-      error_ = "Unknown status response: "+boost::lexical_cast<std::string>(
-        response.status);
-      
-    return false;
-  }
-  
   identifier_.clear();
   client_ = ServiceClient();
   
-  return true;
+  std::list<Solution> solutions;
+  
+  if (response.status != prolog_msgs::GetAllSolutions::Response::
+      STATUS_NO_SOLUTIONS) {
+    for (size_t index = 0; index < response.solutions.size(); ++index) {
+      std::istringstream stream(response.solutions[index]);
+      serialization::JSONDeserializer deserializer;
+    
+      Solution solution;
+      
+      try {
+        solution = deserializer.deserializeBindings(stream);
+      }
+      catch (const ros::Exception& exception) {
+        throw DeserializationFailed(exception.what());
+      }
+      
+      solutions.push_back(solution);
+    }
+  }
+  
+  return solutions;
+}
+
+bool Query::Impl::hasSolution() {
+  if (identifier_.empty())
+    throw InvalidIdentifier();
+  
+  if (!client_.impl_->hasSolutionClient_.exists())
+    throw NoSuchService(client_.impl_->hasSolutionClient_.getService());
+    
+  prolog_msgs::HasSolution::Request request;
+  prolog_msgs::HasSolution::Response response;
+  
+  request.id = identifier_;
+  
+  if (!client_.impl_->hasSolutionClient_.call(request, response))
+    throw ServiceCallFailed(client_.impl_->hasSolutionClient_.getService());
+  
+  if (response.status != prolog_msgs::HasSolution::Response::STATUS_OK) {
+    if (response.status == prolog_msgs::HasSolution::Response::
+        STATUS_INVALID_ID)
+      throw InvalidIdentifier(request.id);
+    else if (response.status == prolog_msgs::HasSolution::Response::
+        STATUS_QUERY_FAILED)
+      throw QueryFailed(response.error);
+    else
+      throw UnknownResponse(response.status);
+  }
+
+  return response.result;
 }
 
 /*****************************************************************************/
-/* Operators                                                                 */
+/* Methods                                                                   */
 /*****************************************************************************/
 
-Bindings Query::operator()(ServiceClient& client) {
-  Bindings bindings;
+void Query::open(ServiceClient& client, Mode mode) {
+  if (impl_.get())
+    impl_->open(client, mode);
+}
+
+void Query::close() {
+  if (impl_.get())
+    impl_->close();
+}
+
+Solution Query::once(ServiceClient& client) {
+  Solution solution;
   
-  if (impl_.get() && impl_->start(client, IncrementalMode) &&
-      impl_->nextSolution(bindings))
-    impl_->abort();
+  if (impl_.get()) {
+    impl_->open(client, IncrementalMode);
+    solution = impl_->getNextSolution(true);
+  }
   
-  return bindings;
+  return solution;
+}
+
+std::list<Solution> Query::all(ServiceClient& client) {
+  std::list<Solution> solutions;
+  
+  if (impl_.get()) {
+    impl_->open(client, BatchMode);
+    solutions = impl_->getAllSolutions();
+  }
+  
+  return solutions;
+}
+
+QueryProxy Query::incremental(ServiceClient& client) {
+  QueryProxy proxy;
+  
+  if (impl_.get()) {
+    impl_->open(client, IncrementalMode);
+    proxy.impl_.reset(new QueryProxy::Impl(*this));
+  }
+  
+  return proxy;
+}
+
+void Query::Impl::open(ServiceClient& client, Mode mode) {
+  if (!identifier_.empty())
+    throw InvalidOperation("A Prolog client may have already "
+      "opened this query.");
+  
+  if (query_.empty())
+    throw InvalidOperation("Attempted to open an empty query.");
+  
+  if (!client.impl_)
+    throw InvalidOperation("Attempted use of an invalid Prolog "
+      "service client.");
+    
+  if (!client.impl_->openQueryClient_.exists())
+    throw NoSuchService(client.impl_->openQueryClient_.getService());
+    
+  prolog_msgs::OpenQuery::Request request;
+  prolog_msgs::OpenQuery::Response response;
+  
+  if (format_ == JSONFormat)
+    request.mode = prolog_msgs::OpenQuery::Request::FORMAT_JSON;
+  else
+    request.mode = prolog_msgs::OpenQuery::Request::FORMAT_PROLOG;
+  
+  if (mode == IncrementalMode)
+    request.mode = prolog_msgs::OpenQuery::Request::MODE_INCREMENTAL;
+  else
+    prolog_msgs::OpenQuery::Request::MODE_BATCH;
+  
+  request.query = query_;
+  
+  if (!client.impl_->openQueryClient_.call(request, response))
+    throw ServiceCallFailed(client.impl_->openQueryClient_.getService());
+  
+  if (!response.ok)
+    QueryFailed(response.error);
+  
+  identifier_ = response.id;
+  client_ = client;
+}
+
+void Query::Impl::close() {
+  if (!identifier_.empty()) {
+    if (!client_.impl_->closeQueryClient_.exists())
+      throw NoSuchService(client_.impl_->closeQueryClient_.getService());
+      
+    prolog_msgs::CloseQuery::Request request;
+    prolog_msgs::CloseQuery::Response response;
+    
+    request.id = identifier_;
+    
+    if (!client_.impl_->closeQueryClient_.call(request, response))
+      throw ServiceCallFailed(client_.impl_->closeQueryClient_.getService());
+    
+    if (response.status != prolog_msgs::CloseQuery::Response::STATUS_OK) {
+      if (response.status != prolog_msgs::CloseQuery::Response::
+          STATUS_INVALID_ID)
+        throw UnknownResponse(response.status);
+    }
+    
+    identifier_.clear();
+  }
+  
+  client_ = ServiceClient();
 }
 
 }}

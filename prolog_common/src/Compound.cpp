@@ -24,7 +24,7 @@ namespace prolog {
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-Compound::Compound(const std::string& functor, const std::list<Term>&
+Compound::Compound(const std::string& functor, const std::vector<Term>&
     arguments) {
   impl_.reset(new Impl(functor, arguments));
 }
@@ -41,7 +41,7 @@ Compound::Compound(const Term& src) :
 Compound::~Compound() {  
 }
 
-Compound::Impl::Impl(const std::string& functor, const std::list<Term>&
+Compound::Impl::Impl(const std::string& functor, const std::vector<Term>&
     arguments) :
   functor_(functor),
   arguments_(arguments) {
@@ -60,12 +60,32 @@ std::string Compound::getFunctor() const {
   return boost::static_pointer_cast<Impl>(impl_)->functor_;
 }
 
-std::list<Term> Compound::getArguments() const {
+std::vector<Term> Compound::getArguments() const {
   return boost::static_pointer_cast<Impl>(impl_)->arguments_;
 }
 
 size_t Compound::getArity() const {
   return boost::static_pointer_cast<Impl>(impl_)->arguments_.size();
+}
+
+/*****************************************************************************/
+/* Methods                                                                   */
+/*****************************************************************************/
+
+std::vector<Term>::iterator Compound::begin() {
+  return boost::static_pointer_cast<Impl>(impl_)->arguments_.begin();
+}
+
+std::vector<Term>::const_iterator Compound::begin() const {
+  return boost::static_pointer_cast<Impl>(impl_)->arguments_.begin();
+}
+
+std::vector<Term>::iterator Compound::end() {
+  return boost::static_pointer_cast<Impl>(impl_)->arguments_.end();
+}
+
+std::vector<Term>::const_iterator Compound::end() const {
+  return boost::static_pointer_cast<Impl>(impl_)->arguments_.end();
 }
 
 }

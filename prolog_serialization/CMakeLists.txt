@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(prolog_serialization)
 
+set(CMAKE_CXX_FLAGS -std=c++11)
+
 find_package(
   catkin
   REQUIRED
@@ -29,9 +31,11 @@ include_directories(
 
 add_library(
   prolog_serialization
+    src/Deserializer.cpp
     src/JSONDeserializer.cpp
     src/JSONSerializer.cpp
     src/PrologSerializer.cpp
+    src/Serializer.cpp
 )
 
 target_link_libraries(

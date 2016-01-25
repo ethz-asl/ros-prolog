@@ -1,9 +1,10 @@
 string id                       # query identifier
+bool close                      # set to true to close the query
 ---
 byte STATUS_OK = 0              # call succeeded
 byte STATUS_INVALID_ID = 1      # query identifier is invalid
 byte STATUS_NO_SOLUTIONS = 2    # query has no more solutions
-byte STATUS_COMMAND_FAILED = 3  # command failed
+byte STATUS_QUERY_FAILED = 3    # query failed
 
 byte status                     # status as defined above
 string solution                 # solution in JSON format if call succeeded

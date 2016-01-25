@@ -17,18 +17,20 @@
  ******************************************************************************/
 
 /** \file InteractiveClient.h
-  * \brief Header file providing the example InteractiveClient class interface
+  * \brief Header file providing the InteractiveClient class interface
   */
 
-#ifndef ROS_PROLOG_INTERACTIVE_CLIENT_H
-#define ROS_PROLOG_INTERACTIVE_CLIENT_H
+#ifndef ROS_PROLOG_CLIENT_INTERACTIVE_CLIENT_H
+#define ROS_PROLOG_CLIENT_INTERACTIVE_CLIENT_H
 
 #include <string>
 
 #include <boost/asio.hpp>
+#include <boost/regex.hpp>
 #include <boost/thread.hpp>
 
 #include <prolog_client/Client.h>
+#include <prolog_client/QueryProxy.h>
 
 namespace prolog {
   namespace client {
@@ -37,6 +39,15 @@ namespace prolog {
     class InteractiveClient :
       public Client {
     public:
+      /** \brief Definition of the interactive Prolog client solution
+        *   mode
+        */
+      enum SolutionMode {
+        FirstSolution,
+        AllSolutions,
+        IncrementalSolutions
+      };
+      
       /** \brief Default constructor
         */
       InteractiveClient();
@@ -55,30 +66,50 @@ namespace prolog {
       void cleanup();
       
     private:
+      /** \brief The mode of this interactive Prolog client
+        */
+      SolutionMode solutionMode_;
+      
       /** \brief The Prolog service client of this interactive
         *   Prolog client
         */
-      ServiceClient client_;
+      ServiceClient serviceClient_;
       
       /** \brief The I/O service of this interactive Prolog client
         */
-      boost::asio::io_service io_;
+      boost::asio::io_service ioService_;
       
       /** \brief The I/O service thread of this interactive Prolog client
         */
-      boost::thread thread_;
+      boost::thread ioThread_;
       
       /** \brief The input stream of this interactive Prolog client
         */
-      boost::asio::posix::stream_descriptor input_;
+      boost::asio::posix::stream_descriptor inputStream_;
       
       /** \brief The input buffer of this interactive Prolog client
         */
-      boost::asio::streambuf buffer_;
+      boost::asio::streambuf inputBuffer_;
       
-      /** \brief The query goal of this interactive Prolog client
+      /** \brief The input column of this interactive Prolog client
         */
-      std::string goal_;
+      size_t inputColumn_;
+      
+      /** \brief The input of this interactive Prolog client
+        */
+      std::string input_;
+      
+      /** \brief The query of this interactive Prolog client
+        */
+      Query query_;
+      
+      /** \brief The solutions of this interactive Prolog client
+        */
+      QueryProxy queryProxy_;
+      
+      /** \brief The solutions iterator of this interactive Prolog client
+        */
+      QueryProxy::Iterator iterator_;
       
       /** \brief Start console input
         */

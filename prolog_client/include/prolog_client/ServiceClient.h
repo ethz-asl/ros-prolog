@@ -20,8 +20,8 @@
   * \brief Header file providing the ServiceClient class interface
   */
 
-#ifndef ROS_PROLOG_SERVICE_CLIENT_H
-#define ROS_PROLOG_SERVICE_CLIENT_H
+#ifndef ROS_PROLOG_CLIENT_SERVICE_CLIENT_H
+#define ROS_PROLOG_CLIENT_SERVICE_CLIENT_H
 
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
@@ -83,11 +83,11 @@ namespace prolog {
         
         void shutdown();
         
-        nodewrap::ServiceClient startQueryClient_;
+        nodewrap::ServiceClient openQueryClient_;
         nodewrap::ServiceClient hasSolutionClient_;
         nodewrap::ServiceClient getAllSolutionsClient_;
         nodewrap::ServiceClient getNextSolutionClient_;
-        nodewrap::ServiceClient abortQueryClient_;
+        nodewrap::ServiceClient closeQueryClient_;
       };
       
       /** \brief The Prolog service client's implementation

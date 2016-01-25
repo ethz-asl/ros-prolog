@@ -68,19 +68,19 @@ bool List::isEmpty() const {
 /*****************************************************************************/
 
 std::list<Term>::iterator List::begin() {
-  boost::static_pointer_cast<Impl>(impl_)->elements_.begin();
+  return boost::static_pointer_cast<Impl>(impl_)->elements_.begin();
 }
 
 std::list<Term>::const_iterator List::begin() const {
-  boost::static_pointer_cast<Impl>(impl_)->elements_.begin();
+  return boost::static_pointer_cast<Impl>(impl_)->elements_.begin();
 }
 
 std::list<Term>::iterator List::end() {
-  boost::static_pointer_cast<Impl>(impl_)->elements_.end();
+  return boost::static_pointer_cast<Impl>(impl_)->elements_.end();
 }
 
 std::list<Term>::const_iterator List::end() const {
-  boost::static_pointer_cast<Impl>(impl_)->elements_.end();
+  return boost::static_pointer_cast<Impl>(impl_)->elements_.end();
 }
 
 void List::append(const Term& element) {

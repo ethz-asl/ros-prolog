@@ -20,34 +20,51 @@
   * \brief Header file providing the Deserializer class interface
   */
 
-#ifndef ROS_PROLOG_DESERIALIZER_H
-#define ROS_PROLOG_DESERIALIZER_H
+#ifndef ROS_PROLOG_SERIALIZATION_DESERIALIZER_H
+#define ROS_PROLOG_SERIALIZATION_DESERIALIZER_H
 
 #include <iostream>
 
 #include <prolog_common/Bindings.h>
+#include <prolog_common/Clause.h>
+#include <prolog_common/Program.h>
+#include <prolog_common/Query.h>
 #include <prolog_common/Term.h>
 
 namespace prolog {
-  /** \brief Abstract Prolog deserializer
-    */
-  class Deserializer {
-  public:
-    /** \brief Default constructor
+  namespace serialization {
+    /** \brief Abstract Prolog deserializer
       */
-    Deserializer();
-    
-    /** \brief Destructor
-      */
-    virtual ~Deserializer();
-    
-    /** \brief Deserialize some Prolog bindings (abstract declaration)
-      */
-    virtual Bindings deserializeBindings(std::istream& stream) const = 0;
-    
-    /** \brief Deserialize a Prolog term (abstract declaration)
-      */
-    virtual Term deserializeTerm(std::istream& stream) const = 0;
+    class Deserializer {
+    public:
+      /** \brief Default constructor
+        */
+      Deserializer();
+      
+      /** \brief Destructor
+        */
+      virtual ~Deserializer();
+      
+      /** \brief Deserialize some Prolog bindings (abstract declaration)
+        */
+      virtual Bindings deserializeBindings(std::istream& stream) const = 0;
+      
+      /** \brief Deserialize a Prolog clause (abstract declaration)
+        */
+      virtual Clause deserializeClause(std::istream& stream) const = 0;
+      
+      /** \brief Deserialize a Prolog program (abstract declaration)
+        */
+      virtual Program deserializeProgram(std::istream& stream) const = 0;
+      
+      /** \brief Deserialize a Prolog query (abstract declaration)
+        */
+      virtual Query deserializeQuery(std::istream& stream) const = 0;
+      
+      /** \brief Deserialize a Prolog term (abstract declaration)
+        */
+      virtual Term deserializeTerm(std::istream& stream) const = 0;
+    };
   };
 };
 

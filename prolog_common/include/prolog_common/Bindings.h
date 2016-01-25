@@ -62,7 +62,7 @@ namespace prolog {
     
     /** \brief True, if these Prolog bindings contain a given term
       */
-    bool haveTerm(const std::string& name) const;
+    bool contain(const std::string& name) const;
     
     /** \brief True, if these Prolog bindings are empty
       */

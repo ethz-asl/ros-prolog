@@ -1,0 +1,10 @@
+<launch>
+  <arg name="config_file"
+       default="$(find prolog_server)/config/mt_server.yaml"/>
+  <arg name="output" default="screen"/>
+
+  <node name="prolog_server" pkg="prolog_server" type="mt_server_node"
+        output="$(arg output)">
+    <rosparam command="load" file="$(arg config_file)"/>
+  </node>
+</launch>

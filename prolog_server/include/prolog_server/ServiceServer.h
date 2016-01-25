@@ -20,8 +20,8 @@
   * \brief Header file providing the ServiceServer class interface
   */
 
-#ifndef ROS_PROLOG_SERVICE_SERVER_H
-#define ROS_PROLOG_SERVICE_SERVER_H
+#ifndef ROS_PROLOG_SERVER_SERVICE_SERVER_H
+#define ROS_PROLOG_SERVER_SERVICE_SERVER_H
 
 #include <boost/shared_ptr.hpp>
 
@@ -67,11 +67,11 @@ namespace prolog {
         
         void shutdown();
         
-        nodewrap::ServiceServer startQueryServer_;
+        nodewrap::ServiceServer openQueryServer_;
         nodewrap::ServiceServer getAllSolutionsServer_;
         nodewrap::ServiceServer getNextSolutionServer_;
         nodewrap::ServiceServer hasSolutionServer_;
-        nodewrap::ServiceServer abortQueryServer_;
+        nodewrap::ServiceServer closeQueryServer_;
       };
       
       /** \brief The Prolog service server's implementation

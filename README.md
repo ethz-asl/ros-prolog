@@ -1,4 +1,4 @@
-# Plugins Related to ROS TF Frames
+# A C++ implementation for using Prolog in ROS
 
 ## Overview
 
@@ -7,86 +7,57 @@ Affiliation: Autonomous Systems Lab, ETH Zurich**
 
 ## Content
 
-This project contains the follwing GUI plugins which may be useful when
-working with ROS TF frames:
-
-### Static TF Plugin for rqt
-
-![Static TF Plugin for rqt](rqt_static_tf.png)
-
-### TF Marker for rviz
-
-![TF Marker for rviz](rviz_tf_marker.png)
+This project provides a ROS server/client interface to Prolog.
 
 ## Installation
 
 ### Dependencies
 
-- [tf2](http://wiki.ros.org/tf2)
+- [swi-prolog](http://www.swi-prolog.org)
 
   ```
-  sudo apt-get install ros-indigo-tf2-ros ros-indigo-tf2-geometry-msgs
+  sudo apt-get install swi-prolog
   ```
  
-- [rqt](http://wiki.ros.org/rqt)
+- [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
 
   ```
-  sudo apt-get install ros-indigo-rqt
+  sudo apt-get install libjsoncpp-dev
   ```
- 
-- [rviz](http://wiki.ros.org/rviz)
 
-  ```
-  sudo apt-get install ros-indigo-rviz
-  ```
- 
 ### Building
 
 Create a symlink in your catkin source folder, e.g.:
 
   ```
-  ln -s ~/git/ros-tf-plugins ~/catkin_ws/src
+  ln -s ~/git/ros-prolog ~/catkin_ws/src
   ```
 
-If you just need certain componenets of the GUI:
+If you just need certain packages of this project:
 
   ```
-  ln -s ~/git/ros-tf-plugins/name_of_the_component ~/catkin_ws/src
+  ln -s ~/git/ros-prolog/name_of_the_package ~/catkin_ws/src
   ```
 
 ## Usage
 
-### Static TF Plugin for rqt
+### Prolog Server
 
-To launch the standalone rqt plugin, run
-
-  ```
-  rosrun rqt_static_tf rqt_static_tf
-  ```
-
-To launch the rqt GUI without a perspective, run
+To launch the Prolog server, run
 
   ```
-  rqt --force-discover
+  roslaunch prolog_server mt_server_node.launch
   ```
 
-This will discover all plugins, which can then be loaded manually.
+### Interactive Prolog Client
 
-To delete the default configuration files (in case of problems):
-
-  ```
-  rqt --clear-config
-  ```
-
-### TF Marker for rviz
-
-To launch rviz and discover the plugin, run
+To launch the interactive Prolog client, run
 
   ```
-  rosrun rviz rviz
+  roslaunch prolog_client interactive_client_node.launch
   ```
 
 ## Bugs & Feature Requests
 
 Please report bugs and feature requests on the
-[Issue Tracker](https://github.com/ethz-asl/ros-tf-plugins).
+[Issue Tracker](https://github.com/ethz-asl/ros-prolog).

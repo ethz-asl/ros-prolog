@@ -20,12 +20,12 @@
   * \brief Header file providing the JSONSerializer class interface
   */
 
-#ifndef ROS_PROLOG_JSON_SERIALIZER_H
-#define ROS_PROLOG_JSON_SERIALIZER_H
+#ifndef ROS_PROLOG_SERIALIZATION_JSON_SERIALIZER_H
+#define ROS_PROLOG_SERIALIZATION_JSON_SERIALIZER_H
 
 #include <string>
 
-#include <prolog_common/Serializer.h>
+#include <prolog_serialization/Serializer.h>
 
 namespace Json {
   class Value;
@@ -79,6 +79,19 @@ namespace prolog {
       void serializeBindings(std::ostream& stream, const Bindings&
         bindings) const;
       
+      /** \brief Serialize a Prolog clause (implementation)
+        */
+      void serializeClause(std::ostream& stream, const Clause& clause) const;
+      
+      /** \brief Serialize a Prolog program (implementation)
+        */
+      void serializeProgram(std::ostream& stream, const Program& program)
+        const;
+      
+      /** \brief Serialize a Prolog query (implementation)
+        */
+      void serializeQuery(std::ostream& stream, const Query& query) const;
+      
       /** \brief Serialize a Prolog term (implementation)
         */
       void serializeTerm(std::ostream& stream, const Term& term) const;
@@ -96,9 +109,17 @@ namespace prolog {
         */
       Json::Value bindingsToValue(const Bindings& bindings) const;
       
+      /** \brief Convert a Prolog clause to a JSON value
+        */
+      Json::Value clauseToValue(const Clause& clause) const;
+      
       /** \brief Convert a Prolog compound to a JSON value
         */
       Json::Value compoundToValue(const Compound& compound) const;
+      
+      /** \brief Convert a Prolog fact to a JSON value
+        */
+      Json::Value factToValue(const Fact& fact) const;
       
       /** \brief Convert a Prolog float to a JSON value
         */
@@ -115,6 +136,18 @@ namespace prolog {
       /** \brief Convert a Prolog list to a JSON value
         */
       Json::Value listToValue(const List& list) const;
+      
+      /** \brief Convert a Prolog program to a JSON value
+        */
+      Json::Value programToValue(const Program& program) const;
+      
+      /** \brief Convert a Prolog query to a JSON value
+        */
+      Json::Value queryToValue(const Query& query) const;
+      
+      /** \brief Convert a Prolog rule to a JSON value
+        */
+      Json::Value ruleToValue(const Rule& rule) const;
       
       /** \brief Convert a Prolog term to a JSON value
         */

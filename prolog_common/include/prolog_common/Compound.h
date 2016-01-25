@@ -23,7 +23,8 @@
 #ifndef ROS_PROLOG_COMPOUND_H
 #define ROS_PROLOG_COMPOUND_H
 
-#include <list>
+#include <string>
+#include <vector>
 
 #include <prolog_common/Term.h>
 
@@ -35,7 +36,7 @@ namespace prolog {
   public:
     /** \brief Constructor
       */
-    Compound(const std::string& functor, const std::list<Term>& arguments);
+    Compound(const std::string& functor, const std::vector<Term>& arguments);
       
     /** \brief Copy constructor
       */
@@ -55,11 +56,31 @@ namespace prolog {
     
     /** \brief Retrieve the arguments of this Prolog compound term
       */
-    std::list<Term> getArguments() const;
+    std::vector<Term> getArguments() const;
     
     /** \brief Retrieve the arity of this Prolog compound term
       */
     size_t getArity() const;
+    
+    /** \brief Retrieve the argument begin iterator of this Prolog
+      *   compound term
+      */ 
+    std::vector<Term>::iterator begin();
+    
+    /** \brief Retrieve the argument begin const-iterator of this Prolog
+      *   compound term
+      */ 
+    std::vector<Term>::const_iterator begin() const;
+
+    /** \brief Retrieve the argument end iterator of this Prolog compound
+      *   term
+      */ 
+    std::vector<Term>::iterator end();
+    
+    /** \brief Retrieve the argument end const-iterator of this Prolog
+      *   compound term
+      */ 
+    std::vector<Term>::const_iterator end() const;
     
   protected:
     friend class Term;
@@ -69,11 +90,11 @@ namespace prolog {
     class Impl :
       public Term::Impl {
     public:
-      Impl(const std::string& functor, const std::list<Term>& arguments);
+      Impl(const std::string& functor, const std::vector<Term>& arguments);
       virtual ~Impl();
       
       std::string functor_;
-      std::list <Term> arguments_;
+      std::vector<Term> arguments_;
     };
   };
 };

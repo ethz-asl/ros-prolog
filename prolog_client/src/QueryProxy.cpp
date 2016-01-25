@@ -16,10 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
+#include <prolog_common/Bindings.h>
+
 #include <prolog_client/Query.h>
 
-#include "prolog_client/Solutions.h"
-#include <boost/iterator/iterator_concepts.hpp>
+#include "prolog_client/QueryProxy.h"
 
 namespace prolog { namespace client {
 
@@ -27,118 +28,129 @@ namespace prolog { namespace client {
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-Solutions::StopIteration::StopIteration() :
-  Exception("Attempted increment of a solutions end iterator.") {
+QueryProxy::InvalidOperation::InvalidOperation(const std::string&
+    description) :
+  Exception("Invalid operation: "+description) {
 }
 
-Solutions::Solutions() {
+QueryProxy::QueryProxy() {
 }
 
-Solutions::Solutions(const Solutions& src) :
+QueryProxy::QueryProxy(const QueryProxy& src) :
   impl_(src.impl_) {
 }
 
-Solutions::~Solutions() {  
+QueryProxy::~QueryProxy() {  
 }
 
-Solutions::Iterator::Iterator() {
+QueryProxy::Iterator::Iterator() {
 }
 
-Solutions::Iterator::Iterator(const Iterator& src) :
-  solutions_(src.solutions_),
+QueryProxy::Iterator::Iterator(const Iterator& src) :
+  proxy_(src.proxy_),
   iterator_(src.iterator_) {
 }
 
-Solutions::Iterator::~Iterator() {  
+QueryProxy::Iterator::~Iterator() {  
 }
 
-Solutions::Impl::Impl() {
+QueryProxy::Impl::Impl(const Query& query) :
+  query_(query) {
+  if (query_.isOpen()) {
+    Solution solution = query.impl_->getNextSolution(false);
+    
+    if (solution.isValid())
+      solutions_.push_back(solution);
+  }
+  else
+    throw InvalidOperation("A query proxy may only be constructed "
+      "for an open Prolog query.");
 }
 
-Solutions::Impl::~Impl() {
+QueryProxy::Impl::~Impl() {
+  query_.close();
 }
 
 /*****************************************************************************/
 /* Accessors                                                                 */
 /*****************************************************************************/
 
-bool Solutions::areEmpty() const {
+bool QueryProxy::hasSolution() const {
   if (impl_)
-    return impl_->bindings_.empty();
+    return !impl_->solutions_.empty();
   else
     return false;
+}
+
+bool QueryProxy::isValid() const {
+  return impl_.get();
 }
 
 /*****************************************************************************/
 /* Methods                                                                   */
 /*****************************************************************************/
 
-Solutions::Iterator Solutions::begin() {
+QueryProxy::Iterator QueryProxy::begin() {
   Iterator iterator;
   
   if (impl_) {
-    iterator.solutions_ = impl_;
-    iterator.iterator_ = impl_->bindings_.begin();
+    iterator.proxy_ = impl_;
+    iterator.iterator_ = impl_->solutions_.begin();
   }
   
   return iterator;
 }
 
-Solutions::Iterator Solutions::end() {
+QueryProxy::Iterator QueryProxy::end() {
   Iterator iterator;
   
   if (impl_) {
-    iterator.solutions_ = impl_;
-    iterator.iterator_ = impl_->bindings_.end();
+    iterator.proxy_ = impl_;
+    iterator.iterator_ = impl_->solutions_.end();
   }
   
   return iterator;
 }
 
-void Solutions::clear() {
-  if (impl_)
-    impl_->bindings_.clear();
-}
-
-bool Solutions::Iterator::equal(const Iterator& iterator) const {
-  if (!iterator.solutions_.get() && solutions_.get() &&
-      (iterator_ == solutions_->bindings_.end()))
+bool QueryProxy::Iterator::equal(const Iterator& iterator) const {
+  if (!iterator.proxy_.get() && proxy_.get() &&
+      (iterator_ == proxy_->solutions_.end()))
     return true;
-  else if (!solutions_.get() && iterator.solutions_.get() &&
-      (iterator.iterator_ == iterator.solutions_->bindings_.end()))
+  else if (!proxy_.get() && iterator.proxy_.get() &&
+      (iterator.iterator_ == iterator.proxy_->solutions_.end()))
     return true;
   else
-    return (!solutions_.get() && !iterator.solutions_.get()) ||
+    return (!proxy_.get() && !iterator.proxy_.get()) ||
       (iterator_ == iterator.iterator_);
 }
 
-void Solutions::Iterator::increment() {
-  if (!solutions_.get() || (iterator_ == solutions_->bindings_.end()))
-    throw StopIteration();
+void QueryProxy::Iterator::increment() {
+  if (!proxy_.get() || (iterator_ == proxy_->solutions_.end()))
+    throw InvalidOperation("Attempted to increment an end iterator.");
 
-  std::list<Bindings>::iterator it = iterator_;
+  std::list<Solution>::iterator it = iterator_;
   
-  if (++it != solutions_->bindings_.end()) {
+  if (++it != proxy_->solutions_.end()) {
     ++iterator_;
     return;
   }
 
-  if (!solutions_->query_.get() || solutions_->query_->identifier_.empty()) {
-    iterator_ = solutions_->bindings_.end();
+  if (!proxy_->query_.isOpen()) {
+    iterator_ = proxy_->solutions_.end();
     return;
   }
 
-  Bindings bindings;
+  Solution solution = proxy_->query_.impl_->getNextSolution(false);
   
-  if (solutions_->query_->nextSolution(bindings)) {
-    solutions_->bindings_.push_back(bindings);
+  if (solution.isValid()) {
+    proxy_->solutions_.push_back(solution);
     ++iterator_;
   }
   else
-    iterator_ = solutions_->bindings_.end();
+    iterator_ = proxy_->solutions_.end();
 }
 
-Bindings& Solutions::Iterator::dereference() const {
+Solution& QueryProxy::Iterator::dereference() const {
    return *iterator_; 
 }
 

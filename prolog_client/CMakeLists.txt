@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(prolog_client)
 
+set(CMAKE_CXX_FLAGS -std=c++11)
+
 find_package(
   catkin
   REQUIRED
@@ -34,8 +36,8 @@ add_library(
     src/Client.cpp
     src/InteractiveClient.cpp
     src/Query.cpp
+    src/QueryProxy.cpp
     src/ServiceClient.cpp
-    src/Solutions.cpp
 )
 
 target_link_libraries(

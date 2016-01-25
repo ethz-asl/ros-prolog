@@ -16,11 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include <prolog_msgs/AbortQuery.h>
+#include <prolog_msgs/CloseQuery.h>
 #include <prolog_msgs/GetAllSolutions.h>
 #include <prolog_msgs/GetNextSolution.h>
 #include <prolog_msgs/HasSolution.h>
-#include <prolog_msgs/StartQuery.h>
+#include <prolog_msgs/OpenQuery.h>
 
 #include "prolog_client/Client.h"
 
@@ -46,10 +46,10 @@ ServiceClient Client::prologServiceClient(const std::string& name, const
 
   client.impl_.reset(new ServiceClient::Impl());
   
-  client.impl_->startQueryClient_ = serviceClient<prolog_msgs::
-    StartQuery>(ros::names::append(name, "start_query"),
-    defaultServiceNamespace.empty() ? std::string("start_query") :
-      ros::names::append(defaultServiceNamespace, "start_query"),
+  client.impl_->openQueryClient_ = serviceClient<prolog_msgs::
+    OpenQuery>(ros::names::append(name, "open_query"),
+    defaultServiceNamespace.empty() ? std::string("open_query") :
+      ros::names::append(defaultServiceNamespace, "open_query"),
     defaultPersistent);
   client.impl_->hasSolutionClient_ = serviceClient<prolog_msgs::
     HasSolution>(ros::names::append(name, "has_solution"),
@@ -66,10 +66,10 @@ ServiceClient Client::prologServiceClient(const std::string& name, const
     defaultServiceNamespace.empty() ? std::string("get_next_solution") :
       ros::names::append(defaultServiceNamespace, "get_next_solution"),
     defaultPersistent);
-  client.impl_->abortQueryClient_ = serviceClient<prolog_msgs::
-    AbortQuery>(ros::names::append(name, "abort_query"),
-    defaultServiceNamespace.empty() ? std::string("abort_query") :
-      ros::names::append(defaultServiceNamespace, "abort_query"),
+  client.impl_->closeQueryClient_ = serviceClient<prolog_msgs::
+    CloseQuery>(ros::names::append(name, "close_query"),
+    defaultServiceNamespace.empty() ? std::string("close_query") :
+      ros::names::append(defaultServiceNamespace, "close_query"),
     defaultPersistent);
   
   return client;

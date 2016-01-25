@@ -53,11 +53,11 @@ bool ServiceServer::isValid() const {
 }
 
 bool ServiceServer::Impl::isValid() const {
-  return startQueryServer_ &&
+  return openQueryServer_ &&
     getAllSolutionsServer_ &&
     getNextSolutionServer_ &&
     hasSolutionServer_ &&
-    abortQueryServer_;
+    closeQueryServer_;
 }
 
 /*****************************************************************************/
@@ -70,11 +70,11 @@ void ServiceServer::shutdown() {
 }
 
 void ServiceServer::Impl::shutdown() {
-  startQueryServer_.shutdown();
+  openQueryServer_.shutdown();
   getAllSolutionsServer_.shutdown();
   getNextSolutionServer_.shutdown();
   hasSolutionServer_.shutdown();
-  abortQueryServer_.shutdown();
+  closeQueryServer_.shutdown();
 }
 
 }}

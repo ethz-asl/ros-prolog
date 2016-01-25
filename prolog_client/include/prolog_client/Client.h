@@ -17,14 +17,13 @@
  ******************************************************************************/
 
 /** \file Client.h
-  * \brief Header file providing the example Client class interface
+  * \brief Header file providing the Client class interface
   */
 
 #ifndef ROS_PROLOG_CLIENT_H
 #define ROS_PROLOG_CLIENT_H
 
 #include <roscpp_nodewrap/NodeImpl.h>
-#include <roscpp_nodewrap/Nodelet.h>
 
 #include <prolog_client/ServiceClient.h>
 

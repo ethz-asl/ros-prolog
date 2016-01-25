@@ -24,6 +24,10 @@ namespace prolog {
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
+Atom::Atom(const char* name) :
+  Atom(std::string(name)) {
+}
+
 Atom::Atom(const std::string& name) {
   impl_.reset(new Impl(name));
 }
@@ -42,7 +46,6 @@ Atom::~Atom() {
 
 Atom::Impl::Impl(const std::string& name) :
   name_(name) {
-  BOOST_ASSERT(!name.empty());  
 }
 
 Atom::Impl::~Impl() {

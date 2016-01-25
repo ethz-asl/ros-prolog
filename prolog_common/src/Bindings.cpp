@@ -55,7 +55,7 @@ Term Bindings::getTerm(const std::string& name) const {
     return Term();
 }
 
-bool Bindings::haveTerm(const std::string& name) const {
+bool Bindings::contain(const std::string& name) const {
   return (impl_->terms_.find(name) != impl_->terms_.end());
 }
 

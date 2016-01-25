@@ -20,10 +20,10 @@
   * \brief Header file providing the PrologSerializer class interface
   */
 
-#ifndef ROS_PROLOG_PROLOG_SERIALIZER_H
-#define ROS_PROLOG_PROLOG_SERIALIZER_H
+#ifndef ROS_PROLOG_SERIALIZATION_PROLOG_SERIALIZER_H
+#define ROS_PROLOG_SERIALIZATION_PROLOG_SERIALIZER_H
 
-#include <prolog_common/Serializer.h>
+#include <prolog_serialization/Serializer.h>
 
 namespace prolog {
   namespace serialization {
@@ -45,6 +45,18 @@ namespace prolog {
       void serializeBindings(std::ostream& stream, const Bindings&
         bindings) const;
       
+      /** \brief Serialize a Prolog clause (implementation)
+        */
+      void serializeClause(std::ostream& stream, const Clause& clause) const;
+      
+      /** \brief Serialize a Prolog program (implementation)
+        */
+      void serializeProgram(std::ostream& stream, const Program& program) const;
+      
+      /** \brief Serialize a Prolog query (implementation)
+        */
+      void serializeQuery(std::ostream& stream, const Query& query) const;
+      
       /** \brief Serialize a Prolog term (implementation)
         */
       void serializeTerm(std::ostream& stream, const Term& term) const;
@@ -57,6 +69,10 @@ namespace prolog {
         */
       void serializeCompound(std::ostream& stream, const Compound& compound)
         const;
+      
+      /** \brief Serialize a Prolog fact
+        */
+      void serializeFact(std::ostream& stream, const Fact& fact) const;
       
       /** \brief Serialize a Prolog float
         */
@@ -75,6 +91,10 @@ namespace prolog {
       /** \brief Serialize a Prolog list
         */
       void serializeList(std::ostream& stream, const List& list) const;
+      
+      /** \brief Serialize a Prolog rule
+        */
+      void serializeRule(std::ostream& stream, const Rule& rule) const;
       
       /** \brief Serialize a Prolog variable
         */

@@ -20,12 +20,12 @@
   * \brief Header file providing the JSONDeserializer class interface
   */
 
-#ifndef ROS_PROLOG_JSON_DESERIALIZER_H
-#define ROS_PROLOG_JSON_DESERIALIZER_H
+#ifndef ROS_PROLOG_SERIALIZATION_JSON_DESERIALIZER_H
+#define ROS_PROLOG_SERIALIZATION_JSON_DESERIALIZER_H
 
 #include <ros/exception.h>
 
-#include <prolog_common/Deserializer.h>
+#include <prolog_serialization/Deserializer.h>
 
 namespace Json {
   class Value;
@@ -66,6 +66,18 @@ namespace prolog {
         */
       Bindings deserializeBindings(std::istream& stream) const;
       
+      /** \brief Deserialize a Prolog clause (implementation)
+        */
+      Clause deserializeClause(std::istream& stream) const;
+      
+      /** \brief Deserialize a Prolog program (implementation)
+        */
+      Program deserializeProgram(std::istream& stream) const;
+      
+      /** \brief Deserialize a Prolog query (implementation)
+        */
+      Query deserializeQuery(std::istream& stream) const;
+      
       /** \brief Deserialize a Prolog term (implementation)
         */
       Term deserializeTerm(std::istream& stream) const;
@@ -77,6 +89,18 @@ namespace prolog {
       /** \brief Convert a JSON value to some Prolog bindings
         */
       Bindings valueToBindings(const Json::Value& value) const;
+      
+      /** \brief Convert a JSON value to a Prolog clause
+        */
+      Clause valueToClause(const Json::Value& value) const;
+      
+      /** \brief Convert a JSON value to a Prolog program
+        */
+      Program valueToProgram(const Json::Value& value) const;
+      
+      /** \brief Convert a JSON value to a Prolog query
+        */
+      Query valueToQuery(const Json::Value& value) const;
       
       /** \brief Convert a JSON value to a Prolog term
         */

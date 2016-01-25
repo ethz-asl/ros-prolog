@@ -1,6 +1,6 @@
 <library path="lib/libprolog_server">
-  <class name="prolog_server/ServerNode"
-         type="nodewrap::Nodelet<prolog_server::ServerNode>"
+  <class name="prolog_server/MultiThreadedServer"
+         type="nodewrap::Nodelet<prolog::server::MultiThreadedServer>"
          base_class_type="nodelet::Nodelet">
     <description>
       Prolog server for ROS.

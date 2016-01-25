@@ -1,0 +1,9 @@
+<launch>
+  <arg name="config_file"
+       default="$(find prolog_client)/config/interactive_client.yaml"/>
+
+  <node name="prolog_client" pkg="prolog_client"
+        type="interactive_client_node" output="screen">
+    <rosparam command="load" file="$(arg config_file)"/>
+  </node>
+</launch>

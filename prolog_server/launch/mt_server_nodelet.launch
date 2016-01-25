@@ -1,0 +1,12 @@
+<launch>
+  <arg name="manager"/>
+  <arg name="config_file"
+       default="$(find prolog_server)/config/mt_server.yaml"/>
+  <arg name="output" default="screen"/>
+
+  <node name="prolog_server" pkg="nodelet" type="nodelet"
+        args="load prolog_server/MultiThreadedServer $(arg manager)"
+        output="$(arg output)">
+    <rosparam command="load" file="$(arg config_file)"/>
+  </node>
+</launch>

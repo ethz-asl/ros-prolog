@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
  ******************************************************************************/
 
-#include "prolog_common/Serializer.h"
+#include "prolog_common/Fact.h"
 
 namespace prolog {
 
@@ -24,10 +24,50 @@ namespace prolog {
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-Serializer::Serializer() {
+Fact::Fact(const std::string& predicate, const std::vector<Term>& arguments) {
+  impl_.reset(new Impl(predicate, arguments));
 }
 
-Serializer::~Serializer() {  
+Fact::Fact(const Fact& src) :
+  Clause(src) {
+}
+
+Fact::Fact(const Clause& src) :
+  Clause(src) {
+  BOOST_ASSERT(boost::dynamic_pointer_cast<Impl>(impl_));
+}
+
+Fact::~Fact() {  
+}
+
+Fact::Impl::Impl(const std::string& predicate, const std::vector<Term>&
+    arguments) :
+  predicate_(predicate),
+  arguments_(arguments) {
+  BOOST_ASSERT(!predicate.empty());
+  
+  for (std::vector<Term>::const_iterator it = arguments.begin();
+      it != arguments.end(); ++it)
+    BOOST_ASSERT(!it->isCompound());
+}
+
+Fact::Impl::~Impl() {
+}
+
+/*****************************************************************************/
+/* Accessors                                                                 */
+/*****************************************************************************/
+
+std::string Fact::getPredicate() const {
+  return boost::static_pointer_cast<Impl>(impl_)->predicate_;
+}
+
+std::vector<Term> Fact::getArguments() const {
+  return boost::static_pointer_cast<Impl>(impl_)->arguments_;
+}
+
+size_t Fact::getArity() const {
+  return boost::static_pointer_cast<Impl>(impl_)->arguments_.size();
 }
 
 }

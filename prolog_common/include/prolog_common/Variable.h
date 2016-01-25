@@ -33,7 +33,11 @@ namespace prolog {
   public:
     /** \brief Default constructor
       */
-    Variable(const std::string& name = "_");
+    Variable(const char* name = "_");
+    
+    /** \brief Constructor (overloaded version taking a string name)
+      */
+    Variable(const std::string& name);
     
     /** \brief Copy constructor
       */

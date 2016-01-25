@@ -24,6 +24,10 @@ namespace prolog {
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
+Variable::Variable(const char* name) :
+  Variable(std::string(name)) {
+}
+
 Variable::Variable(const std::string& name) {
   impl_.reset(new Impl(name));
 }
@@ -43,7 +47,8 @@ Variable::~Variable() {
 Variable::Impl::Impl(const std::string& name) :
   name_(name) {
   BOOST_ASSERT(!name.empty());
-  BOOST_ASSERT((name[0] == toupper(name[0])) || (name[0] == '_'));
+  BOOST_ASSERT((name[0] == toupper(name[0])) ||
+    ((name[0] == '_') && (name.length() > 1)));
 }
 
 Variable::Impl::~Impl() {

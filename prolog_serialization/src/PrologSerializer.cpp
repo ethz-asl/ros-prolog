@@ -18,10 +18,12 @@
 
 #include <prolog_common/Atom.h>
 #include <prolog_common/Compound.h>
+#include <prolog_common/Fact.h>
 #include <prolog_common/Float.h>
 #include <prolog_common/Integer.h>
 #include <prolog_common/List.h>
 #include <prolog_common/Number.h>
+#include <prolog_common/Rule.h>
 #include <prolog_common/Variable.h>
 
 #include "prolog_serialization/PrologSerializer.h"
@@ -54,6 +56,50 @@ void PrologSerializer::serializeBindings(std::ostream& stream, const Bindings&
   }
 }
 
+void PrologSerializer::serializeClause(std::ostream& stream, const Clause&
+    clause) const {
+  if (clause.isFact())
+    serializeFact(stream, clause);
+  else if (clause.isRule())
+    serializeRule(stream, clause);
+}
+
+void PrologSerializer::serializeProgram(std::ostream& stream, const Program&
+    program) const {
+  for (std::list<Clause>::const_iterator it = program.begin();
+       it != program.end(); ++it) {
+    if (it != program.begin())
+      stream << "\n";
+    
+    serializeClause(stream, *it);
+  }
+}
+
+void PrologSerializer::serializeQuery(std::ostream& stream, const Query&
+    query) const {
+  std::string module = query.getModule();
+  std::string predicate = query.getPredicate();
+
+  if (!module.empty())
+    stream << module << ":";
+  stream << predicate;
+  if (query.getArity()) {
+    stream << "(";
+    
+    for (std::vector<Term>::const_iterator it = query.begin();
+        it != query.end(); ++it) {
+      if (it != query.begin())
+        stream << ", ";
+      
+      serializeTerm(stream, *it);
+    }
+      
+    stream << ")";
+  }
+  
+  stream << ".";
+}
+    
 void PrologSerializer::serializeTerm(std::ostream& stream, const Term& term)
     const {
   if (term.isAtom())
@@ -71,9 +117,19 @@ void PrologSerializer::serializeTerm(std::ostream& stream, const Term& term)
 void PrologSerializer::serializeAtom(std::ostream& stream, const Atom& atom)
     const {
   std::string name = atom.getName();
+  bool quoted = (name.empty() || (name[0] == '_'));
   
-  if ((name[0] == toupper(name[0])) || (name[0] == '_') ||
-      (name.find_first_of(" ") != std::string::npos))
+  if (!quoted) {
+    for (size_t index = 0; index < name.length(); ++index) {
+      if (!isalpha(name[index]) || !isgraph(name[index]) ||
+          isspace(name[index])) {
+        quoted = true;
+        break;
+      }
+    }
+  }
+  
+  if (quoted)
     stream << "'" << name << "'";
   else
     stream << name;
@@ -82,13 +138,33 @@ void PrologSerializer::serializeAtom(std::ostream& stream, const Atom& atom)
 void PrologSerializer::serializeCompound(std::ostream& stream, const Compound&
     compound) const {
   std::string functor = compound.getFunctor();
-  std::list<Term> arguments = compound.getArguments();
 
   stream << functor;
+  if (compound.getArity()) {
+    stream << "(";
+    
+    for (std::vector<Term>::const_iterator it = compound.begin();
+        it != compound.end(); ++it) {
+      if (it != compound.begin())
+        stream << ", ";
+      
+      serializeTerm(stream, *it);
+    }
+      
+    stream << ")";
+  }
+}
+
+void PrologSerializer::serializeFact(std::ostream& stream, const Fact& fact)
+    const {
+  std::string predicate = fact.getPredicate();
+  std::vector<Term> arguments = fact.getArguments();
+
+  stream << predicate;
   if (!arguments.empty()) {
     stream << "(";
     
-    for (std::list<Term>::const_iterator it = arguments.begin();
+    for (std::vector<Term>::const_iterator it = arguments.begin();
         it != arguments.end(); ++it) {
       if (it != arguments.begin())
         stream << ", ";
@@ -98,6 +174,8 @@ void PrologSerializer::serializeCompound(std::ostream& stream, const Compound&
       
     stream << ")";
   }
+  
+  stream << ".";
 }
 
 void PrologSerializer::serializeFloat(std::ostream& stream, const Float&
@@ -133,6 +211,40 @@ void PrologSerializer::serializeList(std::ostream& stream, const List& list)
   }
   
   stream << "]";
+}
+
+void PrologSerializer::serializeRule(std::ostream& stream, const Rule& rule)
+    const {
+  std::string predicate = rule.getPredicate();
+  std::vector<Term> arguments = rule.getArguments();
+  std::list<Term> goals = rule.getGoals();
+
+  stream << predicate;
+  if (!arguments.empty()) {
+    stream << "(";
+    
+    for (std::vector<Term>::const_iterator it = arguments.begin();
+        it != arguments.end(); ++it) {
+      if (it != arguments.begin())
+        stream << ", ";
+      
+      serializeTerm(stream, *it);
+    }
+      
+    stream << ")";
+  }
+  
+  stream << " :- ";
+  
+  for (std::list<Term>::const_iterator it = goals.begin();
+      it != goals.end(); ++it) {
+    if (it != goals.begin())
+      stream << ", ";
+    
+    serializeTerm(stream, *it);
+  }
+  
+  stream << ".";
 }
 
 void PrologSerializer::serializeVariable(std::ostream& stream, const Variable&
